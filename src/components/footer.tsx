@@ -1,7 +1,12 @@
 
+'use client';
+
 import Link from "next/link"
 import { Button } from "./ui/button"
-import { Github, Linkedin, Twitter, Instagram } from "lucide-react"
+import { Github, Linkedin, Twitter, Instagram, LogOut, LogIn } from "lucide-react"
+import { useUser, useAuth } from "@/firebase/provider";
+import { signOut } from "firebase/auth";
+import { useToast } from "@/hooks/use-toast";
 
 const socialLinks = [
   { name: "GitHub", url: "https://github.com/sheriffapon", icon: <Github /> },
@@ -10,7 +15,34 @@ const socialLinks = [
   { name: "Instagram", url: "https://instagram.com/Al aponwy Darweesh", icon: <Instagram /> },
 ]
 
+const ADMIN_EMAIL = "sheriffabdulraheemafunsho23@gmail.com";
+
+
 export function Footer() {
+  const { user } = useUser();
+  const auth = useAuth();
+  const { toast } = useToast();
+
+  const isAdmin = user?.email === ADMIN_EMAIL;
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      toast({
+        title: "Signed Out",
+        description: "You have been successfully signed out.",
+      });
+    } catch (error) {
+      console.error("Error signing out:", error);
+      toast({
+        variant: "destructive",
+        title: "Sign Out Failed",
+        description: "There was a problem signing out.",
+      });
+    }
+  };
+
+
   return (
     <footer className="bg-secondary border-t">
       <div className="container py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -31,6 +63,16 @@ export function Footer() {
               </Link>
             </Button>
           ))}
+          {isAdmin && (
+             <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleLogout}
+                aria-label="Logout"
+              >
+                <LogOut />
+              </Button>
+          )}
         </div>
       </div>
     </footer>
