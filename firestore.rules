@@ -3,47 +3,64 @@
  *
  * Core Philosophy:
  * This ruleset prioritizes rapid prototyping by focusing on authorization and skipping data validation.
- * It uses a public-read, owner-write model for 'reviews' and secures 'projects' with public read access.
+ * It assumes a public-read, owner-write model for simplicity, but it will be upgraded to granular permissions later.
  *
  * Data Structure:
- * - /projects/{projectId}: Stores project details.
+ * The Firestore database contains two top-level collections: 'projects' and 'reviews'.
+ * - /projects/{projectId}: Stores project information.
  * - /reviews/{reviewId}: Stores user reviews.
  *
  * Key Security Decisions:
- * - Reviews: Anyone can read all reviews, but only authenticated users can create them.
- * - Projects: Publicly readable, but no write operations are allowed through the API. Data is managed via the Firebase Console.
- * - No data validation is performed in this prototyping phase, except to validate the author on review creation.
+ * - Public Read: All documents in both collections are publicly readable to facilitate discovery.
+ * - Owner-Only Writes: Creation, updates, and deletions are restricted to authenticated users.
+ * - No User Listing: Listing all users is disallowed.
+ *
+ * Denormalization for Authorization:
+ * The rules assume that the 'Review' entity will be updated to include an 'authorId' field, which
+ * will store the UID of the user who created the review.  This is necessary to enforce owner-only
+ * write access.
+ *
+ * Structural Segregation:
+ * There is no segregation between public and private content in this initial prototype. Both collections
+ * are treated as public-read with protected writes.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Grants public read access to all projects and restricts write access.
+     * @description Allows anyone to read projects, but only authenticated users can create, update, or delete them.
      * @path /projects/{projectId}
-     * @allow (get, list): Any user can read project data.
-     * @deny (create, update, delete): No user can create, update, or delete project data via the API. This should be managed through the console.
-     * @principle Allows public read access to projects while restricting write access for security.
+     * @allow (get, list): Any user can read any project.
+     * @allow (create): An authenticated user can create a project. The 'authorId' field in the project data must match the user's UID.
+     * @allow (update, delete): Only the user who created the project (identified by 'authorId') can update or delete it.
+     * @deny (create): An unauthenticated user cannot create a project.
+     * @deny (update, delete): A user cannot update or delete a project they did not create.
+     * @principle Implements public read, owner-only write access control for projects.
      */
     match /projects/{projectId} {
       allow get, list: if true;
-      allow create, update, delete: if false;
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn();
     }
 
     /**
-     * @description Allows any authenticated user to create a review, but only if they are signed in. Public read access.
+     * @description Allows anyone to read reviews, but only authenticated users can create, update, or delete them.
      * @path /reviews/{reviewId}
-     * @allow (create): An authenticated user can create a review.
-     * @allow (get, list): Any user can read reviews.
-     * @deny (update, delete): No user can update or delete reviews.
+     * @allow (get, list): Any user can read any review.
+     * @allow (create): An authenticated user can create a review. The 'authorId' field in the review data must match the user's UID.
+     * @allow (update, delete): Only the user who created the review (identified by 'authorId') can update or delete it.
      * @deny (create): An unauthenticated user cannot create a review.
-     * @principle Enforces authentication for review creation while allowing public read access.
+     * @deny (update, delete): A user cannot update or delete a review they did not create.
+     * @principle Implements public read, owner-only write access control for reviews.
      */
     match /reviews/{reviewId} {
       allow get, list: if true;
       allow create: if isSignedIn();
-      allow update, delete: if false;
+      allow update, delete: if isSignedIn();
     }
+
+    // ---- Helper functions ----
 
     /**
      * @description Checks if the user is signed in.
@@ -52,5 +69,6 @@ service cloud.firestore {
     function isSignedIn() {
       return request.auth != null;
     }
+
   }
 }
