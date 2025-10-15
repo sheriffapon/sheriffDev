@@ -1,0 +1,144 @@
+{
+  "entities": {
+    "Review": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Review",
+      "type": "object",
+      "description": "Represents a user review for a project.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the review."
+        },
+        "projectId": {
+          "type": "string",
+          "description": "Reference to the Project being reviewed. (Relationship: Project 1:N Review)"
+        },
+        "authorName": {
+          "type": "string",
+          "description": "The name of the person who wrote the review."
+        },
+        "comment": {
+          "type": "string",
+          "description": "The text content of the review."
+        },
+        "rating": {
+          "type": "number",
+          "description": "The rating given in the review (e.g., on a scale of 1 to 5).",
+          "format": "integer"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the review was created.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "projectId",
+        "authorName",
+        "comment",
+        "rating",
+        "createdAt"
+      ]
+    },
+    "Project": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Project",
+      "type": "object",
+      "description": "Represents a project showcased on the portfolio website.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the project."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the project."
+        },
+        "description": {
+          "type": "string",
+          "description": "A brief description of the project."
+        },
+        "techStack": {
+          "type": "array",
+          "description": "An array of technologies used in the project.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "githubLink": {
+          "type": "string",
+          "description": "Link to the project's GitHub repository.",
+          "format": "uri"
+        },
+        "liveDemoLink": {
+          "type": "string",
+          "description": "Link to the live demo of the project.",
+          "format": "uri"
+        },
+        "imageURL": {
+          "type": "string",
+          "description": "URL of the project's image.",
+          "format": "uri"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "description",
+        "techStack",
+        "githubLink",
+        "liveDemoLink",
+        "imageURL"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/projects/{projectId}",
+        "definition": {
+          "entityName": "Project",
+          "schema": {
+            "$ref": "#/backend/entities/Project"
+          },
+          "description": "Stores project details. Each document represents a single project.",
+          "params": [
+            {
+              "name": "projectId",
+              "description": "The unique identifier for the project."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/projects/{projectId}/reviews/{reviewId}",
+        "definition": {
+          "entityName": "Review",
+          "schema": {
+            "$ref": "#/backend/entities/Review"
+          },
+          "description": "Stores reviews for a specific project. Includes denormalized 'projectId' for authorization independence.",
+          "params": [
+            {
+              "name": "projectId",
+              "description": "The unique identifier for the project that the review belongs to."
+            },
+            {
+              "name": "reviewId",
+              "description": "The unique identifier for the review."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to efficiently handle project reviews and ratings. Each project will have its own subcollection of reviews, enabling easy retrieval and management of reviews for a specific project. The key strategy is to store reviews in a subcollection of projects, specifically at `/projects/{projectId}/reviews/{reviewId}`. This allows for efficient querying of reviews associated with a project and avoids the need for complex queries across a single, large collection of all reviews. This direct relationship simplifies data retrieval and security rule definition. Each review document contains all necessary data, including `projectId`, `authorName`, `comment`, `rating`, and `createdAt`. This approach avoids the need for joins or complex lookups when displaying project reviews, ensuring a scalable and performant solution."
+  }
+}

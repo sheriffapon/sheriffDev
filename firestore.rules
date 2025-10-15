@@ -1,0 +1,25 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /projects/{projectId} {
+      allow get, list: if true;
+      allow create, update, delete: if false;
+    }
+
+    match /projects/{projectId}/reviews/{reviewId} {
+      allow get, list: if true;
+      allow create: if isSignedIn();
+      allow update: if isOwner();
+      allow delete: if isOwner();
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner() {
+      return isSignedIn() && request.auth.uid == resource.data.authorId;
+    }
+  }
+}
