@@ -54,7 +54,7 @@ export function ContactForm() {
       toast({
         variant: "destructive",
         title: "Uh oh! Something went wrong.",
-        description: "There was a problem sending your message. Please try again.",
+        description: result.message || "There was a problem sending your message. Please try again.",
       })
     }
   }

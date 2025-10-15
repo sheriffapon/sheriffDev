@@ -23,6 +23,7 @@ export async function sendEmail(formData: {
     return {
       success: false,
       errors: validatedFields.error.flatten().fieldErrors,
+      message: "Invalid fields provided.",
     };
   }
 
@@ -44,13 +45,14 @@ export async function sendEmail(formData: {
 
     if (error) {
       console.error("Resend error:", error);
-      return { success: false, message: "Failed to send email." };
+      return { success: false, message: error.message || "Failed to send email." };
     }
 
     return { success: true, message: "Email sent successfully!" };
 
   } catch (error) {
     console.error("Error sending email:", error);
-    return { success: false, message: "Something went wrong." };
+    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+    return { success: false, message: `Something went wrong: ${errorMessage}` };
   }
 }
