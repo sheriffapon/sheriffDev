@@ -9,16 +9,15 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {generate} from 'genkit';
 import {z} from 'genkit';
 
 const ChatInputSchema = z.object({
-  message: z.string().describe('The user\'s message.'),
+  message: z.string().describe("The user's message."),
 });
 export type ChatInput = z.infer<typeof ChatInputSchema>;
 
 const ChatOutputSchema = z.object({
-  message: z.string().describe('The AI\'s response.'),
+  message: z.string().describe("The AI's response."),
 });
 export type ChatOutput = z.infer<typeof ChatOutputSchema>;
 
@@ -33,7 +32,7 @@ const chatFlow = ai.defineFlow(
     outputSchema: ChatOutputSchema,
   },
   async (input) => {
-    const llmResponse = await generate({
+    const llmResponse = await ai.generate({
       prompt: `You are a helpful assistant for a portfolio website. Keep your responses concise. User's message: ${input.message}`,
       model: 'googleai/gemini-2.5-flash',
     });
