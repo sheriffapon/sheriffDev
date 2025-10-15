@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "Review": {
@@ -27,6 +28,10 @@
           "type": "string",
           "description": "Timestamp indicating when the review was created.",
           "format": "date-time"
+        },
+        "userId": {
+          "type": "string",
+          "description": "The UID of the user who submitted the review."
         }
       },
       "required": [
@@ -34,7 +39,8 @@
         "authorName",
         "comment",
         "rating",
-        "createdAt"
+        "createdAt",
+        "userId"
       ]
     },
     "Project": {

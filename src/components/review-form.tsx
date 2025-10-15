@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm, Controller } from 'react-hook-form';
@@ -53,13 +54,16 @@ export function ReviewForm() {
       toast({
         variant: 'destructive',
         title: 'Authentication Error',
-        description: 'You must be signed in to leave a review. Please refresh the page and try again.',
+        description: 'You must be signed in to leave a review. Anonymous sign-in is in progress, please try again in a moment.',
       });
       setIsSubmitting(false);
       return;
     }
 
     try {
+      if (!firestore) {
+        throw new Error("Firestore is not initialized");
+      }
       const reviewsCollection = collection(firestore, 'reviews');
       await addDocumentNonBlocking(reviewsCollection, {
         ...values,
