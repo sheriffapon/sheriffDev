@@ -113,4 +113,39 @@ html {
   .logo-cursor {
     animation: blink 1.2s infinite;
   }
+
+  @keyframes sand-shimmer {
+    0% {
+      transform: translateX(-100%) skewX(-15deg);
+    }
+    100% {
+      transform: translateX(100%) skewX(-15deg);
+    }
+  }
+
+  .btn-sand-shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-sand-shimmer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 20%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.2) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    transform: translateX(-100%) skewX(-15deg);
+    transition: transform 0.85s;
+  }
+  
+  .btn-sand-shimmer:hover::after {
+    animation: sand-shimmer 0.85s ease-in-out;
+  }
 }

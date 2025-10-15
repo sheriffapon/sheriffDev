@@ -23,7 +23,7 @@ export function HeroSection() {
             Full Stack Developer & Creative Technologist building modern, responsive web applications.
           </p>
           <div className="mt-8 flex flex-wrap gap-4 justify-center lg:justify-start">
-            <Button size="lg" asChild className="shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-shadow">
+            <Button size="lg" asChild className="shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-shadow btn-sand-shimmer">
               <Link href="#contact">
                 Hire Me <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
