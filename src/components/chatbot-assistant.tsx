@@ -25,11 +25,15 @@ export function ChatbotAssistant() {
   const chatRef = useRef<HTMLDivElement>(null);
   const dragStartRef = useRef<{ startX: number; startY: number, initialX: number, initialY: number } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  const [initialPositionSet, setInitialPositionSet] = useState(false);
 
   useEffect(() => {
-    // Set initial position only on the client-side
-    setPosition({ x: window.innerWidth - 400, y: window.innerHeight - 550 });
-  }, []);
+    if (typeof window !== 'undefined' && !initialPositionSet) {
+      setPosition({ x: window.innerWidth - 400, y: window.innerHeight - 550 });
+      setInitialPositionSet(true);
+    }
+  }, [initialPositionSet]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -74,20 +78,6 @@ export function ChatbotAssistant() {
       e.preventDefault();
     }
   };
-
-  const onMouseMove = (e: globalThis.MouseEvent) => {
-    if (isDragging && dragStartRef.current && chatRef.current) {
-      const dx = e.clientX - dragStartRef.current.startX;
-      const dy = e.clientY - dragStartRef.current.startY;
-      const newX = dragStartRef.current.initialX + dx;
-      const newY = dragStartRef.current.initialY + dy;
-      
-      chatRef.current.style.left = `${newX}px`;
-      chatRef.current.style.top = `${newY}px`;
-
-      setPosition({ x: newX, y: newY });
-    }
-  };
   
   const onMouseUp = () => {
     setIsDragging(false);
@@ -97,18 +87,28 @@ export function ChatbotAssistant() {
     }
   };
 
+  const onMouseMove = (e: globalThis.MouseEvent) => {
+    if (isDragging && dragStartRef.current) {
+      const dx = e.clientX - dragStartRef.current.startX;
+      const dy = e.clientY - dragStartRef.current.startY;
+      const newX = dragStartRef.current.initialX + dx;
+      const newY = dragStartRef.current.initialY + dy;
+      setPosition({ x: newX, y: newY });
+    }
+  };
+
   useEffect(() => {
-    const handleMouseMove = (e: globalThis.MouseEvent) => onMouseMove(e);
-    const handleMouseUp = () => onMouseUp();
-    
     if (isDragging) {
-      window.addEventListener("mousemove", handleMouseMove);
-      window.addEventListener("mouseup", handleMouseUp);
+      window.addEventListener("mousemove", onMouseMove);
+      window.addEventListener("mouseup", onMouseUp);
+    } else {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
     }
 
     return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
     };
   }, [isDragging]);
 
