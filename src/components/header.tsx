@@ -37,6 +37,16 @@ export function Header() {
     },
   };
 
+  const ballVariants = {
+    hidden: { scale: 0, y: -10, opacity: 0 },
+    visible: { 
+      scale: 1, 
+      y: 0, 
+      opacity: 1,
+      transition: { type: "spring", stiffness: 300, damping: 20 } 
+    }
+  }
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center">
@@ -65,13 +75,18 @@ export function Header() {
         <div className="flex flex-1 items-center justify-end space-x-2">
           <nav className="hidden items-center space-x-6 text-sm font-medium md:flex">
             {navLinks.map(({ href, label }) => (
-              <Link
-                key={href}
-                href={href}
-                className="transition-colors hover:text-primary"
-              >
-                {label}
-              </Link>
+              <motion.div key={href} className="relative" whileHover="visible" initial="hidden">
+                 <Link
+                  href={href}
+                  className="transition-colors hover:text-primary"
+                >
+                  {label}
+                </Link>
+                <motion.div 
+                  className="absolute -bottom-2 left-1/2 -translate-x-1/2 h-1.5 w-1.5 bg-primary rounded-full"
+                  variants={ballVariants}
+                />
+              </motion.div>
             ))}
           </nav>
           <div className="hidden items-center gap-2 md:flex">
