@@ -3,6 +3,7 @@ import type {Metadata} from 'next';
 import './globals.css';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from "@/components/ui/toaster"
+import { ChatbotAssistant } from '@/components/chatbot-assistant';
 
 export const metadata: Metadata = {
   title: "Sheriff Abdulraheem's Portfolio",
@@ -31,6 +32,7 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             {children}
+            <ChatbotAssistant />
             <Toaster />
           </ThemeProvider>
         </div>
