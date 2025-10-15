@@ -31,6 +31,7 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogClose,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -134,8 +135,15 @@ export function ReviewsSection() {
 
   const isAdmin = user?.email === ADMIN_EMAIL;
 
-  const reviewsCollection = useMemoFirebase(() => collection(firestore, 'reviews'), [firestore]);
-  const reviewsQuery = useMemoFirebase(() => query(reviewsCollection, orderBy('createdAt', 'desc')), [reviewsCollection]);
+  const reviewsCollection = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'reviews');
+  }, [firestore]);
+
+  const reviewsQuery = useMemoFirebase(() => {
+    if (!reviewsCollection) return null;
+    return query(reviewsCollection, orderBy('createdAt', 'desc'));
+  }, [reviewsCollection]);
 
   const { data: reviews, isLoading } = useCollection(reviewsQuery);
 
@@ -203,116 +211,118 @@ export function ReviewsSection() {
     <section id="reviews" className="bg-background/30">
       <div className="container">
         <SectionTitle>Testimonials</SectionTitle>
-        <div className="grid lg:grid-cols-2 gap-12 items-start">
-          <div className="space-y-6">
-            <h3 className="text-2xl font-headline font-semibold text-center lg:text-left">What people are saying</h3>
-            {isLoading && (
-              <div className="space-y-4">
-                {[...Array(3)].map((_, i) => (
-                  <Card key={i} className="bg-card/60 backdrop-blur-xl border-white/10 p-6">
-                    <div className="flex items-center mb-2">
-                      <Skeleton className="h-4 w-24" />
-                    </div>
-                    <Skeleton className="h-5 w-32 mb-4" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-3/4 mt-2" />
-                  </Card>
-                ))}
-              </div>
-            )}
-            {!isLoading && reviews && (
-              <div className="space-y-4">
-                {reviews.map((review) => {
-                  const canModify = isAdmin || isOwner(review.userId);
-                  const userHasLiked = user && review.likedBy?.includes(user.uid);
-                  const userHasDisliked = user && review.dislikedBy?.includes(user.uid);
-
-                  return (
-                    <Card key={review.id} className="relative group bg-card/60 backdrop-blur-xl border-white/10 p-6">
-                      <div className="flex items-center justify-between mb-2">
-                        <p className="font-semibold text-foreground">{review.authorName}</p>
-                        <StarRating rating={review.rating} readOnly />
+        <div className="max-w-6xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-12 items-start">
+            <div className="space-y-6">
+              <h3 className="text-2xl font-headline font-semibold text-center lg:text-left">What people are saying</h3>
+              {isLoading && (
+                <div className="space-y-4">
+                  {[...Array(3)].map((_, i) => (
+                    <Card key={i} className="bg-card/60 backdrop-blur-xl border-white/10 p-6">
+                      <div className="flex items-center mb-2">
+                        <Skeleton className="h-4 w-24" />
                       </div>
-                      <p className="text-muted-foreground flex-grow">{review.comment}</p>
-                      
-                      <div className="flex items-center justify-between mt-4">
-                        <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="icon" className="h-8 w-8 flex items-center gap-1" onClick={() => handleVote(review.id, 'like')}>
-                                <ThumbsUp className={cn("h-4 w-4", userHasLiked ? "text-blue-500 fill-blue-500" : "")} />
-                                <span className="text-xs">{review.likedBy?.length || 0}</span>
-                            </Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 flex items-center gap-1" onClick={() => handleVote(review.id, 'dislike')}>
-                                <ThumbsDown className={cn("h-4 w-4", userHasDisliked ? "text-red-500 fill-red-500" : "")} />
-                                <span className="text-xs">{review.dislikedBy?.length || 0}</span>
-                            </Button>
-                        </div>
-                        {review.createdAt && (
-                            <p className="text-xs text-muted-foreground">
-                            {new Date(review.createdAt.seconds * 1000).toLocaleDateString()}
-                            </p>
-                        )}
-                      </div>
-
-                      {canModify && (
-                        <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Dialog open={openDialogs[review.id] || false} onOpenChange={(isOpen) => setOpenDialogs(prev => ({ ...prev, [review.id]: isOpen }))}>
-                            <DialogTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent>
-                              <DialogHeader>
-                                <DialogTitle>Edit Your Review</DialogTitle>
-                              </DialogHeader>
-                              <EditReviewForm review={review} onFormSubmit={() => setOpenDialogs(prev => ({ ...prev, [review.id]: false }))} />
-                            </DialogContent>
-                          </Dialog>
-
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  This action cannot be undone. This will permanently delete this review.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => handleDeleteReview(review.id)}
-                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                >
-                                  Delete
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
-                      )}
+                      <Skeleton className="h-5 w-32 mb-4" />
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-4 w-3/4 mt-2" />
                     </Card>
-                  )
-                })}
-              </div>
-            )}
-            {!isLoading && reviews?.length === 0 && (
-              <Card className="bg-card/60 backdrop-blur-xl border-white/10 p-6 text-center text-muted-foreground">
-                Be the first to leave a review!
+                  ))}
+                </div>
+              )}
+              {!isLoading && reviews && (
+                <div className="space-y-4">
+                  {reviews.map((review) => {
+                    const canModify = isAdmin || isOwner(review.userId);
+                    const userHasLiked = user && review.likedBy?.includes(user.uid);
+                    const userHasDisliked = user && review.dislikedBy?.includes(user.uid);
+
+                    return (
+                      <Card key={review.id} className="relative group bg-card/60 backdrop-blur-xl border-white/10 p-6">
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="font-semibold text-foreground">{review.authorName}</p>
+                          <StarRating rating={review.rating} readOnly />
+                        </div>
+                        <p className="text-muted-foreground flex-grow">{review.comment}</p>
+                        
+                        <div className="flex items-center justify-between mt-4">
+                          <div className="flex items-center gap-2">
+                              <Button variant="ghost" size="icon" className="h-8 w-8 flex items-center gap-1" onClick={() => handleVote(review.id, 'like')}>
+                                  <ThumbsUp className={cn("h-4 w-4", userHasLiked ? "text-blue-500 fill-blue-500" : "")} />
+                                  <span className="text-xs">{review.likedBy?.length || 0}</span>
+                              </Button>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 flex items-center gap-1" onClick={() => handleVote(review.id, 'dislike')}>
+                                  <ThumbsDown className={cn("h-4 w-4", userHasDisliked ? "text-red-500 fill-red-500" : "")} />
+                                  <span className="text-xs">{review.dislikedBy?.length || 0}</span>
+                              </Button>
+                          </div>
+                          {review.createdAt && (
+                              <p className="text-xs text-muted-foreground">
+                              {new Date(review.createdAt.seconds * 1000).toLocaleDateString()}
+                              </p>
+                          )}
+                        </div>
+
+                        {canModify && (
+                          <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Dialog open={openDialogs[review.id] || false} onOpenChange={(isOpen) => setOpenDialogs(prev => ({ ...prev, [review.id]: isOpen }))}>
+                              <DialogTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle>Edit Your Review</DialogTitle>
+                                </DialogHeader>
+                                <EditReviewForm review={review} onFormSubmit={() => setOpenDialogs(prev => ({ ...prev, [review.id]: false }))} />
+                              </DialogContent>
+                            </Dialog>
+
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    This action cannot be undone. This will permanently delete this review.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDeleteReview(review.id)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        )}
+                      </Card>
+                    )
+                  })}
+                </div>
+              )}
+              {!isLoading && reviews?.length === 0 && (
+                <Card className="bg-card/60 backdrop-blur-xl border-white/10 p-6 text-center text-muted-foreground">
+                  Be the first to leave a review!
+                </Card>
+              )}
+            </div>
+            <div>
+              <Card className="bg-card/60 backdrop-blur-xl border-white/10 p-6 md:p-8">
+                <CardHeader className="p-0 mb-4">
+                  <CardTitle className="text-2xl font-headline font-semibold text-center lg:text-left">Leave a Review</CardTitle>
+                </CardHeader>
+                <ReviewForm />
               </Card>
-            )}
-          </div>
-          <div>
-            <Card className="bg-card/60 backdrop-blur-xl border-white/10 p-6 md:p-8">
-              <CardHeader className="p-0 mb-4">
-                <CardTitle className="text-2xl font-headline font-semibold text-center lg:text-left">Leave a Review</CardTitle>
-              </CardHeader>
-              <ReviewForm />
-            </Card>
+            </div>
           </div>
         </div>
       </div>
