@@ -2,12 +2,12 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Bot, Send, X, Loader2, CornerDownLeft, GripVertical } from "lucide-react";
+import { Bot, Send, X, Loader2, GripVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { chat } from "@/ai/flows/chat-flow";
-import { AnimatePresence, motion, useMotionValue } from "framer-motion";
+import { AnimatePresence, motion, useDragControls, useMotionValue } from "framer-motion";
 
 type Message = {
   text: string;
@@ -23,6 +23,7 @@ export function ChatbotAssistant() {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const wasDragged = useRef(false);
+  const dragControls = useDragControls();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -56,6 +57,10 @@ export function ChatbotAssistant() {
     }
   };
 
+  function startDrag(event: React.PointerEvent) {
+    dragControls.start(event);
+  }
+
   return (
     <>
       <div ref={dragConstraintsRef} className="fixed inset-0 pointer-events-none z-50" />
@@ -65,17 +70,19 @@ export function ChatbotAssistant() {
             drag
             dragConstraints={dragConstraintsRef}
             dragMomentum={false}
-            onDragStart={() => wasDragged.current = true}
+            onDragStart={() => {
+              wasDragged.current = true;
+            }}
             onDragEnd={() => {
-                // Use a timeout to reset the drag state, allowing onTap to be suppressed
-                setTimeout(() => {
-                    wasDragged.current = false;
-                }, 10);
+              // Use a timeout to reset the drag state, allowing onTap to be suppressed
+              setTimeout(() => {
+                wasDragged.current = false;
+              }, 10);
             }}
             onTap={() => {
-                if (!wasDragged.current) {
-                    setIsOpen(true);
-                }
+              if (!wasDragged.current) {
+                setIsOpen(true);
+              }
             }}
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -129,9 +136,10 @@ export function ChatbotAssistant() {
         {isOpen && (
           <motion.div
             drag
+            dragListener={false}
+            dragControls={dragControls}
             dragConstraints={dragConstraintsRef}
             dragMomentum={false}
-            dragListener={false} // Disable direct drag on the window
             initial={{ opacity: 0, y: 50, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 50, scale: 0.9 }}
@@ -140,33 +148,24 @@ export function ChatbotAssistant() {
             style={{ x, y }} // Use the same motion values to persist position
           >
             <Card className="w-80 md:w-96 h-[500px] flex flex-col bg-card/60 backdrop-blur-xl border-white/10">
-              <motion.div
-                onPointerDown={(e) => {
-                    // This allows dragging from the header
-                    const target = e.target as HTMLElement;
-                    if (target.closest('[data-drag-handle]')) {
-                        const controls = (e.target as any).closest('[data-drag-controls-wrapper]').dragControls;
-                        controls.start(e);
-                    }
-                }}
-                data-drag-controls-wrapper
+              <div
+                onPointerDown={startDrag}
                 className="cursor-grab active:cursor-grabbing"
               >
-              <CardHeader
-                data-drag-handle
-                className="flex flex-row items-center justify-between p-3 border-b border-white/10"
-              >
-                <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                  <Bot size={20} className="text-primary" /> AI Assistant
-                </CardTitle>
-                <div className="flex items-center">
-                  <GripVertical className="h-5 w-5 text-muted-foreground" />
-                  <Button variant="ghost" size="icon" className="h-8 w-8 cursor-pointer" onClick={() => setIsOpen(false)}>
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardHeader>
-              </motion.div>
+                <CardHeader
+                  className="flex flex-row items-center justify-between p-3 border-b border-white/10"
+                >
+                  <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                    <Bot size={20} className="text-primary" /> AI Assistant
+                  </CardTitle>
+                  <div className="flex items-center">
+                    <GripVertical className="h-5 w-5 text-muted-foreground" />
+                    <Button variant="ghost" size="icon" className="h-8 w-8 cursor-pointer" onClick={() => setIsOpen(false)}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardHeader>
+              </div>
               <CardContent className="flex-grow overflow-y-auto p-4 space-y-4">
                 {messages.map((msg, index) => (
                   <div
@@ -226,7 +225,7 @@ export function ChatbotAssistant() {
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1">
-                  Press <CornerDownLeft className="h-3 w-3" /> to send.
+                  Press Enter to send.
                 </p>
               </div>
             </Card>
