@@ -1,7 +1,8 @@
+
 'use client';
 
 import { useState } from 'react';
-import { collection, query, orderBy, doc, increment } from 'firebase/firestore';
+import { collection, query, orderBy, doc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { useCollection, useFirestore, useMemoFirebase, useUser, updateDocumentNonBlocking } from '@/firebase';
 import { SectionTitle } from '../section-title';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -36,6 +37,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
 import { Textarea } from '../ui/textarea';
+import { cn } from '@/lib/utils';
 
 const ADMIN_EMAIL = "sheriffabdulraheemafunsho23@gmail.com";
 
@@ -147,13 +149,53 @@ export function ReviewsSection() {
     });
   };
 
-  const handleVote = (reviewId: string, voteType: 'likes' | 'dislikes') => {
-    if (!firestore) return;
+  const handleVote = (reviewId: string, voteType: 'like' | 'dislike') => {
+    if (!firestore || !user) {
+        toast({
+            variant: "destructive",
+            title: "Not signed in",
+            description: "You need to be signed in to vote.",
+        });
+        return;
+    }
+
     const reviewDocRef = doc(firestore, 'reviews', reviewId);
-    updateDocumentNonBlocking(reviewDocRef, {
-        [voteType]: increment(1)
-    });
+    const review = reviews?.find(r => r.id === reviewId);
+    if (!review) return;
+
+    const userId = user.uid;
+    const isLiked = review.likedBy?.includes(userId);
+    const isDisliked = review.dislikedBy?.includes(userId);
+
+    let updateData = {};
+
+    if (voteType === 'like') {
+        if (isLiked) {
+            // User is unliking
+            updateData = { likedBy: arrayRemove(userId) };
+        } else {
+            // User is liking, remove dislike if it exists
+            updateData = { 
+                likedBy: arrayUnion(userId),
+                ...(isDisliked && { dislikedBy: arrayRemove(userId) })
+            };
+        }
+    } else if (voteType === 'dislike') {
+        if (isDisliked) {
+            // User is undisliking
+            updateData = { dislikedBy: arrayRemove(userId) };
+        } else {
+            // User is disliking, remove like if it exists
+            updateData = { 
+                dislikedBy: arrayUnion(userId),
+                ...(isLiked && { likedBy: arrayRemove(userId) })
+            };
+        }
+    }
+
+    updateDocumentNonBlocking(reviewDocRef, updateData);
   };
+
 
   const isOwner = (reviewUserId: string) => user?.uid === reviewUserId;
 
@@ -182,6 +224,9 @@ export function ReviewsSection() {
               <div className="space-y-4">
                 {reviews.map((review) => {
                   const canModify = isAdmin || isOwner(review.userId);
+                  const userHasLiked = user && review.likedBy?.includes(user.uid);
+                  const userHasDisliked = user && review.dislikedBy?.includes(user.uid);
+
                   return (
                     <Card key={review.id} className="relative group bg-card/60 backdrop-blur-xl border-white/10 p-6">
                       <div className="flex items-center justify-between mb-2">
@@ -191,14 +236,14 @@ export function ReviewsSection() {
                       <p className="text-muted-foreground flex-grow">{review.comment}</p>
                       
                       <div className="flex items-center justify-between mt-4">
-                        <div className="flex items-center gap-4">
-                            <Button variant="ghost" size="icon" className="h-8 w-8 flex items-center gap-1" onClick={() => handleVote(review.id, 'likes')}>
-                                <ThumbsUp className="h-4 w-4" />
-                                <span className="text-xs">{review.likes || 0}</span>
+                        <div className="flex items-center gap-2">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 flex items-center gap-1" onClick={() => handleVote(review.id, 'like')}>
+                                <ThumbsUp className={cn("h-4 w-4", userHasLiked ? "text-blue-500 fill-blue-500" : "")} />
+                                <span className="text-xs">{review.likedBy?.length || 0}</span>
                             </Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 flex items-center gap-1" onClick={() => handleVote(review.id, 'dislikes')}>
-                                <ThumbsDown className="h-4 w-4" />
-                                <span className="text-xs">{review.dislikes || 0}</span>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 flex items-center gap-1" onClick={() => handleVote(review.id, 'dislike')}>
+                                <ThumbsDown className={cn("h-4 w-4", userHasDisliked ? "text-red-500 fill-red-500" : "")} />
+                                <span className="text-xs">{review.dislikedBy?.length || 0}</span>
                             </Button>
                         </div>
                         {review.createdAt && (

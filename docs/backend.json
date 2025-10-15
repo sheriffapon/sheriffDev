@@ -33,13 +33,19 @@
           "type": "string",
           "description": "The UID of the user who submitted the review."
         },
-        "likes": {
-          "type": "number",
-          "description": "The number of likes the review has received."
+        "likedBy": {
+          "type": "array",
+          "description": "An array of user UIDs who have liked the review.",
+          "items": {
+            "type": "string"
+          }
         },
-        "dislikes": {
-          "type": "number",
-          "description": "The number of dislikes the review has received."
+        "dislikedBy": {
+          "type": "array",
+          "description": "An array of user UIDs who have disliked the review.",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "required": [
