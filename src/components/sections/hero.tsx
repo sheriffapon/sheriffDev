@@ -12,7 +12,7 @@ export function HeroSection() {
     <section id="hero" className="relative overflow-hidden bg-background">
       <div className="container grid lg:grid-cols-2 items-center gap-12 py-20 md:py-32">
         <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
-          <h1 className="text-3xl md:text-5xl font-headline font-bold tracking-tighter text-balance">
+          <h1 className="text-4xl md:text-6xl font-headline font-bold tracking-tighter text-balance">
             Sheriff Abdulraheem
           </h1>
           <p className="mt-4 max-w-md text-lg text-muted-foreground text-balance">
