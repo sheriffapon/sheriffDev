@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useForm, Controller } from 'react-hook-form';
@@ -18,7 +17,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { StarRating } from './star-rating';
-import { useFirestore } from '@/firebase';
+import { useFirestore, useUser } from '@/firebase';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { collection, serverTimestamp } from 'firebase/firestore';
 import { Send } from 'lucide-react';
@@ -33,6 +32,7 @@ export function ReviewForm() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const firestore = useFirestore();
+  const { user, isUserLoading } = useUser();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -45,11 +45,23 @@ export function ReviewForm() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
+
+    if (!user) {
+      toast({
+        variant: 'destructive',
+        title: 'Authentication Error',
+        description: 'You must be signed in to leave a review. Please refresh the page and try again.',
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const reviewsCollection = collection(firestore, 'reviews');
       await addDocumentNonBlocking(reviewsCollection, {
         ...values,
         createdAt: serverTimestamp(),
+        userId: user.uid, // Associate review with the anonymous user
       });
 
       toast({
@@ -68,6 +80,8 @@ export function ReviewForm() {
       setIsSubmitting(false);
     }
   }
+
+  const isButtonDisabled = isSubmitting || isUserLoading;
 
   return (
     <Form {...form}>
@@ -118,8 +132,8 @@ export function ReviewForm() {
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
-          {isSubmitting ? 'Submitting...' : <>Submit Review <Send className="ml-2 h-4 w-4" /></>}
+        <Button type="submit" className="w-full" size="lg" disabled={isButtonDisabled}>
+          {isSubmitting ? 'Submitting...' : isUserLoading ? 'Initializing...' : <>Submit Review <Send className="ml-2 h-4 w-4" /></>}
         </Button>
       </form>
     </Form>

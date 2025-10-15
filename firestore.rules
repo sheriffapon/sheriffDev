@@ -1,36 +1,30 @@
 /**
- * @fileoverview Firestore Security Rules for Prototyping.
+ * @fileoverview Firestore Security Rules for the portfolio application.
  *
  * Core Philosophy:
- * This ruleset prioritizes rapid prototyping by focusing on authorization and skipping data validation.
- * It uses a public-read, owner-write model for 'reviews' and assumes public read access for 'projects', but enforces authentication for write operations.
+ * This ruleset prioritizes public read access to project and review data while restricting write access.
+ * Any authenticated user can create, update, and delete reviews.
+ * Any authenticated user can create, update, and delete projects.
  *
  * Data Structure:
- * - /projects/{projectId}: Stores project data. Publicly readable, writeable only by authenticated users.
- * - /reviews/{reviewId}: Stores reviews. Publicly readable, writeable only by authenticated users.
+ * The data is stored in two top-level collections: 'projects' and 'reviews'.
+ * /projects/{projectId}: Stores project details.
+ * /reviews/{reviewId}: Stores reviews.
  *
  * Key Security Decisions:
- * - Public Read Access: 'projects' and 'reviews' collections are publicly readable to facilitate easy data display.
- * - Authenticated Writes: Write operations (create, update, delete) on both 'projects' and 'reviews' require user authentication.  Schema validation is skipped.
- * - No User Listing:  Listing users is not permitted.
- *
- * Denormalization for Authorization:
- *  -  Currently not used, but consider adding an `authorId` field to the `reviews` collection in the future to enable more fine-grained access control (e.g., allowing only the author to edit their review).
- *
- * Structural Segregation:
- *  -  Not applicable in this scenario. All data is treated as potentially public.
+ * - Projects and Reviews are publicly readable, but write operations are restricted.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Grants public read access and authenticated write access to the 'projects' collection.
+     * @description Allows public read access to projects, but restricts write access to authenticated users.
      * @path /projects/{projectId}
-     * @allow (get, list): Anyone can read project data.
-     * @allow (create, update, delete): Only authenticated users can create, update, or delete projects.
-     * @deny (create, update, delete): Unauthenticated users cannot modify project data.
-     * @principle Allows public reads and authenticated writes.
+     * @allow (get, list) Any user can read project details.
+     * @allow (create, update, delete) Any authenticated user can modify project details.
+     * @deny (create, update, delete) Unauthenticated users cannot modify project details.
+     * @principle Allows public reads, but restricts writes to authenticated users.
      */
     match /projects/{projectId} {
       allow get, list: if true;
@@ -38,19 +32,22 @@ service cloud.firestore {
     }
 
     /**
-     * @description Grants public read access and authenticated write access to the 'reviews' collection.
+     * @description Allows public read access to reviews, but restricts write access to authenticated users.
      * @path /reviews/{reviewId}
-     * @allow (get, list): Anyone can read reviews.
-     * @allow (create, update, delete): Only authenticated users can create, update, or delete reviews.
-     * @deny (create, update, delete): Unauthenticated users cannot create reviews.
-     * @principle Allows public reads and authenticated writes, requiring authentication for all write operations.
+     * @allow (get, list) Any user can read reviews.
+     * @allow (create, update, delete) Any authenticated user can modify reviews.
+     * @deny (create, update, delete) Unauthenticated users cannot modify reviews.
+     * @principle Allows public reads, but restricts writes to authenticated users.
      */
     match /reviews/{reviewId} {
       allow get, list: if true;
       allow create, update, delete: if isSignedIn();
     }
 
-    // Define helper functions.
+    /**
+     * @description Checks if the user is signed in.
+     * @return {boolean} True if the user is signed in, false otherwise.
+     */
     function isSignedIn() {
       return request.auth != null;
     }
