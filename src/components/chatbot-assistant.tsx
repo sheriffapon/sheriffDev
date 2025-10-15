@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Bot, Send, X, Loader2, CornerDownLeft } from "lucide-react";
+import { Bot, Send, X, Loader2, CornerDownLeft, GripVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -116,21 +116,44 @@ export function ChatbotAssistant() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
+            drag
+            dragConstraints={dragConstraintsRef}
+            dragMomentum={false}
+            dragListener={false} // We'll use a drag handle
             initial={{ opacity: 0, y: 50, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 50, scale: 0.9 }}
             transition={{ type: "spring", stiffness: 260, damping: 25 }}
             className="fixed z-50 shadow-2xl rounded-xl top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-auto"
+            style={{ x, y }} // Use the same motion values to persist position
           >
             <Card className="w-80 md:w-96 h-[500px] flex flex-col bg-card/60 backdrop-blur-xl border-white/10">
-              <CardHeader className="flex flex-row items-center justify-between p-3 border-b border-white/10">
-                <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                  <Bot size={20} className="text-primary" /> AI Assistant
-                </CardTitle>
-                <Button variant="ghost" size="icon" className="h-8 w-8 cursor-pointer" onClick={() => setIsOpen(false)}>
-                  <X className="h-4 w-4" />
-                </Button>
-              </CardHeader>
+              <motion.div
+                 onPointerDown={(e) => {
+                    // This allows dragging only from the header
+                    const target = e.target as HTMLElement;
+                    if (target.closest('[data-drag-handle]')) {
+                      // Let the drag event pass through
+                    } else {
+                      e.preventDefault();
+                    }
+                  }}
+              >
+                <CardHeader 
+                  data-drag-handle
+                  className="flex flex-row items-center justify-between p-3 border-b border-white/10 cursor-grab active:cursor-grabbing"
+                >
+                  <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                    <Bot size={20} className="text-primary" /> AI Assistant
+                  </CardTitle>
+                  <div className="flex items-center">
+                    <GripVertical className="h-5 w-5 text-muted-foreground" />
+                    <Button variant="ghost" size="icon" className="h-8 w-8 cursor-pointer" onClick={() => setIsOpen(false)}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardHeader>
+              </motion.div>
               <CardContent className="flex-grow overflow-y-auto p-4 space-y-4">
                 {messages.map((msg, index) => (
                   <div
