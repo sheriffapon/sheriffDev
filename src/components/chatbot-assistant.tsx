@@ -57,14 +57,11 @@ export function ChatbotAssistant() {
       <AnimatePresence>
         {!isOpen && (
           <motion.div
-            drag
-            dragMomentum={false}
             initial={{ scale: 0, y: 50, bottom: "1.25rem", right: "1.25rem" }}
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0, y: 50 }}
             transition={{ type: "spring", stiffness: 260, damping: 20 }}
-            className="fixed z-50 group cursor-grab"
-            whileTap={{ cursor: "grabbing" }}
+            className="fixed bottom-5 right-5 z-50 group"
           >
             <div className="relative w-20 h-20">
               <motion.div
@@ -98,7 +95,6 @@ export function ChatbotAssistant() {
                 className="relative w-full h-full rounded-full shadow-lg bg-transparent hover:bg-primary/20 text-primary-foreground transition-colors duration-300"
                 onClick={() => setIsOpen(true)}
                 aria-label="Open AI Assistant"
-                onPointerDown={(e) => e.stopPropagation()} // Prevent drag from firing on click
               >
                 <Bot size={36} className="group-hover:scale-110 transition-transform" />
               </Button>
