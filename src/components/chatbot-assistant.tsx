@@ -68,16 +68,16 @@ export function ChatbotAssistant() {
         {isOpen ? (
           <motion.div
             drag
-            dragListener={false}
             dragControls={dragControls}
+            dragListener={false}
             dragConstraints={dragConstraintsRef}
             dragMomentum={false}
-            initial={{ opacity: 0, scale: 0.9, x: x.get(), y: y.get() }}
+            initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ type: "spring", stiffness: 260, damping: 25 }}
             className="fixed z-50 shadow-2xl rounded-xl pointer-events-auto"
-            style={{ x, y }} // Use the same motion values to persist position
+            style={{ x, y }} 
           >
             <Card className="w-80 md:w-96 h-[500px] flex flex-col bg-card/60 backdrop-blur-xl border-white/10">
               <div
