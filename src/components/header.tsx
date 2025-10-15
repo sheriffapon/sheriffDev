@@ -21,26 +21,22 @@ export function Header() {
   
   const textVariants = {
     hidden: { opacity: 0 },
-    visible: (i = 1) => ({
+    visible: {
       opacity: 1,
-      transition: { staggerChildren: 0.1, delayChildren: 0.1 * i },
-    }),
+      transition: { 
+        staggerChildren: 0.1,
+      },
+    },
   };
 
   const charVariants = {
-    hidden: {
-      opacity: 0,
-      y: 10,
-      rotate: -10,
-    },
+    hidden: { opacity: 0 },
     visible: {
-      opacity: 1,
-      y: 0,
-      rotate: 0,
+      opacity: [0.2, 1, 0.2],
       transition: {
-        type: "spring",
-        damping: 12,
-        stiffness: 100,
+        duration: 3,
+        repeat: Infinity,
+        ease: "easeInOut",
       },
     },
   };
@@ -57,7 +53,15 @@ export function Header() {
              animate="visible"
            >
              {sheriffDevText.map((char, index) => (
-               <motion.span key={index} variants={charVariants} style={{display: 'inline-block'}}>
+               <motion.span
+                key={index}
+                variants={charVariants}
+                style={{display: 'inline-block'}}
+                transition={{
+                    ...charVariants.visible.transition,
+                    delay: index * 0.2
+                }}
+              >
                  {char}
                </motion.span>
              ))}
