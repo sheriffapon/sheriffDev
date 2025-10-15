@@ -4,6 +4,7 @@ import './globals.css';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from "@/components/ui/toaster"
 import { ChatbotAssistant } from '@/components/chatbot-assistant';
+import { FirebaseClientProvider } from '@/firebase/client-provider';
 
 export const metadata: Metadata = {
   title: "Sheriff Abdulraheem's Portfolio",
@@ -31,7 +32,9 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            {children}
+            <FirebaseClientProvider>
+              {children}
+            </FirebaseClientProvider>
             <ChatbotAssistant />
             <Toaster />
           </ThemeProvider>

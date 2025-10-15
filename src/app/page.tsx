@@ -7,6 +7,7 @@ import { SkillsSection } from "@/components/sections/skills";
 import { ContactSection } from "@/components/sections/contact";
 import { Footer } from "@/components/footer";
 import { FadeIn } from "@/components/fade-in";
+import { ReviewsSection } from "@/components/sections/reviews";
 
 export default function Home() {
   return (
@@ -19,6 +20,9 @@ export default function Home() {
         </FadeIn>
         <FadeIn>
           <ProjectsSection />
+        </FadeIn>
+        <FadeIn>
+          <ReviewsSection />
         </FadeIn>
         <FadeIn>
           <SkillsSection />

@@ -10,10 +10,6 @@
           "type": "string",
           "description": "Unique identifier for the review."
         },
-        "projectId": {
-          "type": "string",
-          "description": "Reference to the Project being reviewed. (Relationship: Project 1:N Review)"
-        },
         "authorName": {
           "type": "string",
           "description": "The name of the person who wrote the review."
@@ -35,7 +31,6 @@
       },
       "required": [
         "id",
-        "projectId",
         "authorName",
         "comment",
         "rating",
@@ -101,44 +96,17 @@
     ]
   },
   "firestore": {
-    "structure": [
-      {
-        "path": "/projects/{projectId}",
-        "definition": {
-          "entityName": "Project",
-          "schema": {
-            "$ref": "#/backend/entities/Project"
-          },
-          "description": "Stores project details. Each document represents a single project.",
-          "params": [
-            {
-              "name": "projectId",
-              "description": "The unique identifier for the project."
-            }
-          ]
-        }
+    "/projects/{projectId}": {
+      "schema": {
+        "$ref": "#/backend/entities/Project"
       },
-      {
-        "path": "/projects/{projectId}/reviews/{reviewId}",
-        "definition": {
-          "entityName": "Review",
-          "schema": {
-            "$ref": "#/backend/entities/Review"
-          },
-          "description": "Stores reviews for a specific project. Includes denormalized 'projectId' for authorization independence.",
-          "params": [
-            {
-              "name": "projectId",
-              "description": "The unique identifier for the project that the review belongs to."
-            },
-            {
-              "name": "reviewId",
-              "description": "The unique identifier for the review."
-            }
-          ]
-        }
-      }
-    ],
-    "reasoning": "The Firestore structure is designed to efficiently handle project reviews and ratings. Each project will have its own subcollection of reviews, enabling easy retrieval and management of reviews for a specific project. The key strategy is to store reviews in a subcollection of projects, specifically at `/projects/{projectId}/reviews/{reviewId}`. This allows for efficient querying of reviews associated with a project and avoids the need for complex queries across a single, large collection of all reviews. This direct relationship simplifies data retrieval and security rule definition. Each review document contains all necessary data, including `projectId`, `authorName`, `comment`, `rating`, and `createdAt`. This approach avoids the need for joins or complex lookups when displaying project reviews, ensuring a scalable and performant solution."
+      "description": "Stores project details. Each document represents a single project."
+    },
+    "/reviews/{reviewId}": {
+      "schema": {
+        "$ref": "#/backend/entities/Review"
+      },
+      "description": "Stores reviews for the portfolio. Each document is a review."
+    }
   }
 }
