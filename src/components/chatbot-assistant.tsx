@@ -122,7 +122,7 @@ export function ChatbotAssistant() {
             transition={{ type: "spring", stiffness: 260, damping: 25 }}
             className="fixed z-50 shadow-2xl rounded-xl top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-auto"
           >
-            <Card className="w-80 md:w-96 h-[500px] flex flex-col bg-background/80 backdrop-blur-xl border-white/10">
+            <Card className="w-80 md:w-96 h-[500px] flex flex-col bg-card/60 backdrop-blur-xl border-white/10">
               <CardHeader className="flex flex-row items-center justify-between p-3 border-b border-white/10">
                 <CardTitle className="text-lg font-semibold flex items-center gap-2">
                   <Bot size={20} className="text-primary" /> AI Assistant

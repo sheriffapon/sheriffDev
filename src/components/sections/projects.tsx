@@ -52,7 +52,7 @@ export function ProjectsSection() {
           {projects.map((project) => {
             const projectImage = PlaceHolderImages.find(p => p.id === project.id);
             return (
-              <Card key={project.id} className="flex flex-col overflow-hidden group">
+              <Card key={project.id} className="flex flex-col overflow-hidden group bg-card/60 backdrop-blur-xl border-white/10">
                 {projectImage && (
                   <div className="aspect-video overflow-hidden">
                     <Image

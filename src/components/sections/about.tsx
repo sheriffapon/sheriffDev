@@ -10,7 +10,7 @@ export function AboutSection() {
     <section id="about">
       <div className="container">
         <SectionTitle>About Me</SectionTitle>
-        <Card className="max-w-4xl mx-auto p-6 md:p-8 bg-card/80 backdrop-blur-sm">
+        <Card className="max-w-4xl mx-auto p-6 md:p-8 bg-card/60 backdrop-blur-xl border-white/10">
           <AnimatedText 
             text={aboutText}
             className="text-lg text-center text-muted-foreground text-balance leading-relaxed"
