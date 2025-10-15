@@ -20,11 +20,16 @@ export function ChatbotAssistant() {
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const [position, setPosition] = useState({ x: 20, y: 20 });
+  const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const chatRef = useRef<HTMLDivElement>(null);
-  const dragStartRef = useRef<{ x: number; y: number, initialX: number, initialY: number } | null>(null);
+  const dragStartRef = useRef<{ startX: number; startY: number, initialX: number, initialY: number } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Set initial position only on the client-side
+    setPosition({ x: window.innerWidth - 400, y: window.innerHeight - 550 });
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -60,10 +65,10 @@ export function ChatbotAssistant() {
     if (chatRef.current) {
       setIsDragging(true);
       dragStartRef.current = {
-        x: e.clientX,
-        y: e.clientY,
-        initialX: chatRef.current.offsetLeft,
-        initialY: chatRef.current.offsetTop,
+        startX: e.clientX,
+        startY: e.clientY,
+        initialX: position.x,
+        initialY: position.y,
       };
        // Prevent text selection while dragging
       e.preventDefault();
@@ -72,43 +77,38 @@ export function ChatbotAssistant() {
 
   const onMouseMove = (e: globalThis.MouseEvent) => {
     if (isDragging && dragStartRef.current && chatRef.current) {
-      const dx = e.clientX - dragStartRef.current.x;
-      const dy = e.clientY - dragStartRef.current.y;
-      
+      const dx = e.clientX - dragStartRef.current.startX;
+      const dy = e.clientY - dragStartRef.current.startY;
       const newX = dragStartRef.current.initialX + dx;
       const newY = dragStartRef.current.initialY + dy;
+      
+      chatRef.current.style.left = `${newX}px`;
+      chatRef.current.style.top = `${newY}px`;
 
-      // We'll use transform for smoother animation instead of top/left
-      chatRef.current.style.transform = `translate(${newX}px, ${newY}px)`;
+      setPosition({ x: newX, y: newY });
     }
   };
   
-  const onMouseUp = (e: globalThis.MouseEvent) => {
-    if (isDragging && dragStartRef.current && chatRef.current) {
-        const dx = e.clientX - dragStartRef.current.x;
-        const dy = e.clientY - dragStartRef.current.y;
-        const newX = dragStartRef.current.initialX + dx;
-        const newY = dragStartRef.current.initialY + dy;
-        
-        // Update the final position in state
-        setPosition({ x: newX, y: newY });
-        chatRef.current.style.left = `${newX}px`;
-        chatRef.current.style.top = `${newY}px`;
-        chatRef.current.style.transform = '';
-    }
+  const onMouseUp = () => {
     setIsDragging(false);
     dragStartRef.current = null;
+    if (chatRef.current) {
+      chatRef.current.style.cursor = 'grab';
+    }
   };
 
   useEffect(() => {
+    const handleMouseMove = (e: globalThis.MouseEvent) => onMouseMove(e);
+    const handleMouseUp = () => onMouseUp();
+    
     if (isDragging) {
-      window.addEventListener("mousemove", onMouseMove);
-      window.addEventListener("mouseup", onMouseUp);
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
     }
 
     return () => {
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseup", onMouseUp);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
     };
   }, [isDragging]);
 
@@ -147,9 +147,7 @@ export function ChatbotAssistant() {
             style={{
               left: `${position.x}px`,
               top: `${position.y}px`,
-              bottom: 'auto',
-              right: 'auto',
-              cursor: isDragging ? "grabbing" : "default",
+              cursor: isDragging ? "grabbing" : "grab",
             }}
           >
             <Card className="w-80 md:w-96 h-[500px] flex flex-col bg-background/80 backdrop-blur-xl border-white/10">
