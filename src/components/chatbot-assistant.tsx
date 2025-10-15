@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { chat } from "@/ai/flows/chat-flow";
-import { AnimatePresence, motion, PanInfo, useMotionValue } from "framer-motion";
+import { AnimatePresence, motion, useMotionValue } from "framer-motion";
 
 type Message = {
   text: string;
@@ -20,6 +20,8 @@ export function ChatbotAssistant() {
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const dragConstraintsRef = useRef<HTMLDivElement>(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -67,7 +69,7 @@ export function ChatbotAssistant() {
             exit={{ scale: 0, opacity: 0 }}
             transition={{ type: "spring", stiffness: 260, damping: 20 }}
             className="fixed bottom-5 right-5 z-50 group cursor-grab active:cursor-grabbing pointer-events-auto"
-            style={{ x: useMotionValue(0), y: useMotionValue(0) }}
+            style={{ x, y }}
           >
             <div className="relative w-20 h-20">
                <motion.div
