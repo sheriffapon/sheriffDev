@@ -58,49 +58,50 @@ export function ChatbotAssistant() {
       <AnimatePresence>
         {!isOpen && (
            <motion.div
-            initial={{ scale: 0, y: 50 }}
+            drag
+            dragMomentum={false}
+            initial={{ scale: 0, y: 50, bottom: "1.25rem", right: "1.25rem" }}
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0, y: 50 }}
             transition={{ type: "spring", stiffness: 260, damping: 20 }}
-            className="fixed bottom-5 right-5 z-50 group"
+            className="fixed z-50 group cursor-grab"
+            whileTap={{cursor: "grabbing"}}
           >
-            <div className="relative w-16 h-16">
-              <motion.div
+            <div className="relative w-20 h-20">
+               <motion.div
+                className="absolute inset-0.5 bg-primary rounded-full"
                 animate={{
-                  scale: [1, 1.2, 1, 1.1, 1],
-                  rotate: [0, 15, -10, 5, 0],
+                  scale: [1, 1.1, 1],
+                  opacity: [0.7, 1, 0.7],
                 }}
                 transition={{
-                  duration: 4,
+                  duration: 2,
                   ease: "easeInOut",
                   repeat: Infinity,
-                  repeatDelay: 1
                 }}
-                className="absolute inset-0 bg-primary rounded-full"
               />
-              {[...Array(3)].map((_, i) => (
-                <motion.div
-                  key={i}
-                  animate={{
-                    scale: [1, 1.5 + i * 0.2, 1],
-                    opacity: [0.3, 0.1, 0.3],
-                  }}
-                  transition={{
-                    duration: 3 + i,
-                    ease: "easeInOut",
-                    repeat: Infinity,
-                    delay: i * 0.5
-                  }}
-                  className="absolute inset-0 border-2 border-primary rounded-full"
-                />
-              ))}
+
+              <motion.div
+                className="absolute inset-0 border-2 border-primary/50 rounded-full"
+                 animate={{
+                  scale: [1, 1.2, 1],
+                  opacity: [0, 0.5, 0],
+                }}
+                transition={{
+                  duration: 3,
+                  ease: "easeInOut",
+                  repeat: Infinity,
+                  delay: 0.5,
+                }}
+              />
 
               <Button
-                className="relative w-16 h-16 rounded-full shadow-lg bg-transparent hover:bg-primary/20 text-primary-foreground transition-colors duration-300"
+                className="relative w-full h-full rounded-full shadow-lg bg-transparent hover:bg-primary/20 text-primary-foreground transition-colors duration-300"
                 onClick={() => setIsOpen(true)}
                 aria-label="Open AI Assistant"
+                onPointerDown={(e) => e.stopPropagation()} // Prevent drag from firing on click
               >
-                <Bot size={32} className="group-hover:scale-110 transition-transform" />
+                <Bot size={36} className="group-hover:scale-110 transition-transform" />
               </Button>
             </div>
           </motion.div>
@@ -119,6 +120,7 @@ export function ChatbotAssistant() {
             exit={{ opacity: 0, y: 50, scale: 0.9 }}
             transition={{ type: "spring", stiffness: 260, damping: 25 }}
             className="fixed z-50 shadow-2xl rounded-xl top-1/4 left-1/2"
+            whileTap={{cursor: "grabbing"}}
           >
             <Card className="w-80 md:w-96 h-[500px] flex flex-col bg-background/80 backdrop-blur-xl border-white/10">
               <CardHeader
