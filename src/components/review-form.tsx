@@ -18,7 +18,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { StarRating } from './star-rating';
-import { useFirestore, addDocumentNonBlocking } from '@/firebase';
+import { useFirestore } from '@/firebase';
+import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { collection, serverTimestamp } from 'firebase/firestore';
 import { Send } from 'lucide-react';
 
@@ -78,7 +79,7 @@ export function ReviewForm() {
             <FormItem>
               <FormLabel>Your Name</FormLabel>
               <FormControl>
-                <Input placeholder="John Doe" {...field} />
+                <Input placeholder="example.name" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
