@@ -3,8 +3,8 @@
 
 import Link from "next/link"
 import { Button } from "./ui/button"
-import { Github, Linkedin, Twitter, Instagram, LogOut, LogIn } from "lucide-react"
-import { useUser, useAuth } from "@/firebase/provider";
+import { Github, Linkedin, Twitter, Instagram, LogOut } from "lucide-react"
+import { useUser, useAuth } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
 
@@ -16,7 +16,6 @@ const socialLinks = [
 ]
 
 const ADMIN_EMAIL = "sheriffabdulraheemafunsho23@gmail.com";
-
 
 export function Footer() {
   const { user } = useUser();
@@ -41,7 +40,6 @@ export function Footer() {
       });
     }
   };
-
 
   return (
     <footer className="bg-secondary border-t">
