@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Bot, Send, X, Loader2, GripVertical } from "lucide-react";
+import { Bot, Send, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -72,20 +72,23 @@ export function ChatbotAssistant() {
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ type: "spring", stiffness: 260, damping: 25 }}
           >
-            <Card className="w-80 md:w-96 h-[500px] flex flex-col bg-card/60 backdrop-blur-xl border-white/10 shadow-2xl">
+            <Card 
+              onPointerDown={(e) => {
+                // Prevent drag from starting on buttons, inputs, etc.
+                if ((e.target as HTMLElement).closest('button, input, a, [role="button"]')) return;
+                dragControls.start(e);
+              }}
+              className="w-80 md:w-96 h-[500px] flex flex-col bg-card/60 backdrop-blur-xl border-white/10 shadow-2xl"
+            >
               <CardHeader
-                onPointerDown={(e) => dragControls.start(e)}
-                className="flex flex-row items-center justify-between p-3 border-b border-white/10 cursor-grab active:cursor-grabbing"
+                className="flex flex-row items-center justify-between p-3 border-b border-white/10"
               >
                 <CardTitle className="text-lg font-semibold flex items-center gap-2">
                   <Bot size={20} className="text-primary" /> AI Assistant
                 </CardTitle>
-                <div className="flex items-center">
-                  <GripVertical className="h-5 w-5 text-muted-foreground" />
-                  <Button variant="ghost" size="icon" className="h-8 w-8 cursor-pointer" onClick={() => setIsOpen(false)}>
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
+                <Button variant="ghost" size="icon" className="h-8 w-8 cursor-pointer" onClick={() => setIsOpen(false)}>
+                  <X className="h-4 w-4" />
+                </Button>
               </CardHeader>
               <CardContent className="flex-grow overflow-y-auto p-4 space-y-4">
                 {messages.map((msg, index) => (
