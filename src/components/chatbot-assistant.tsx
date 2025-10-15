@@ -2,12 +2,12 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Bot, Send, X, Loader2, CornerDownLeft, GripVertical } from "lucide-react";
+import { Bot, Send, X, Loader2, CornerDownLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { chat } from "@/ai/flows/chat-flow";
-import { AnimatePresence, motion, useDragControls } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 
 type Message = {
   text: string;
@@ -21,7 +21,6 @@ export function ChatbotAssistant() {
   const [isLoading, setIsLoading] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const dragControls = useDragControls()
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -57,7 +56,7 @@ export function ChatbotAssistant() {
     <>
       <AnimatePresence>
         {!isOpen && (
-           <motion.div
+          <motion.div
             drag
             dragMomentum={false}
             initial={{ scale: 0, y: 50, bottom: "1.25rem", right: "1.25rem" }}
@@ -65,10 +64,10 @@ export function ChatbotAssistant() {
             exit={{ scale: 0, y: 50 }}
             transition={{ type: "spring", stiffness: 260, damping: 20 }}
             className="fixed z-50 group cursor-grab"
-            whileTap={{cursor: "grabbing"}}
+            whileTap={{ cursor: "grabbing" }}
           >
             <div className="relative w-20 h-20">
-               <motion.div
+              <motion.div
                 className="absolute inset-0.5 bg-primary rounded-full"
                 animate={{
                   scale: [1, 1.1, 1],
@@ -83,7 +82,7 @@ export function ChatbotAssistant() {
 
               <motion.div
                 className="absolute inset-0 border-2 border-primary/50 rounded-full"
-                 animate={{
+                animate={{
                   scale: [1, 1.2, 1],
                   opacity: [0, 0.5, 0],
                 }}
@@ -111,25 +110,16 @@ export function ChatbotAssistant() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            drag
-            dragListener={false}
-            dragControls={dragControls}
-            dragMomentum={false}
             initial={{ opacity: 0, y: 50, scale: 0.9, x: "-50%" }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 50, scale: 0.9 }}
             transition={{ type: "spring", stiffness: 260, damping: 25 }}
             className="fixed z-50 shadow-2xl rounded-xl top-1/4 left-1/2"
-            whileTap={{cursor: "grabbing"}}
           >
             <Card className="w-80 md:w-96 h-[500px] flex flex-col bg-background/80 backdrop-blur-xl border-white/10">
-              <CardHeader
-                className="flex flex-row items-center justify-between p-3 border-b border-white/10 cursor-grab"
-                onPointerDown={(event) => dragControls.start(event)}
-              >
+              <CardHeader className="flex flex-row items-center justify-between p-3 border-b border-white/10">
                 <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                  <GripVertical size={18} className="text-muted-foreground"/>
-                  <Bot size={20} className="text-primary"/> AI Assistant
+                  <Bot size={20} className="text-primary" /> AI Assistant
                 </CardTitle>
                 <Button variant="ghost" size="icon" className="h-8 w-8 cursor-pointer" onClick={() => setIsOpen(false)}>
                   <X className="h-4 w-4" />
@@ -193,7 +183,7 @@ export function ChatbotAssistant() {
                     <Send className="h-4 w-4" />
                   </Button>
                 </div>
-                 <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1">
+                <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1">
                   Press <CornerDownLeft className="h-3 w-3" /> to send.
                 </p>
               </div>
