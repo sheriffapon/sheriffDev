@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Menu, Mail, Download, Code } from "lucide-react"
+import { Menu, Mail, Github, Code } from "lucide-react"
 import { ThemeToggle } from "./theme-toggle"
 import { Button } from "./ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet"
@@ -35,9 +35,9 @@ export function Header() {
           </nav>
           <div className="hidden items-center gap-2 md:flex">
              <Button variant="outline" size="sm" asChild className="shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-shadow">
-                <a href="/resume.pdf" target="_blank" rel="noopener noreferrer">
-                    <Download className="mr-2 h-4 w-4" />
-                    Resume
+                <a href="https://github.com/sheriffapon" target="_blank" rel="noopener noreferrer">
+                    <Github className="mr-2 h-4 w-4" />
+                    GitHub
                 </a>
             </Button>
             <Button variant="outline" size="sm" asChild className="shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-shadow">
@@ -68,9 +68,9 @@ export function Header() {
                 ))}
                 <div className="flex flex-col gap-4 mt-4">
                   <Button variant="outline" asChild>
-                      <a href="/resume.pdf" target="_blank" rel="noopener noreferrer">
-                          <Download className="mr-2 h-4 w-4" />
-                          Resume
+                      <a href="https://github.com/sheriffapon" target="_blank" rel="noopener noreferrer">
+                          <Github className="mr-2 h-4 w-4" />
+                          GitHub
                       </a>
                   </Button>
                   <Button variant="outline" asChild>
