@@ -47,9 +47,11 @@ export function ReviewsSection() {
                       <StarRating rating={review.rating} readOnly />
                     </div>
                     <p className="text-muted-foreground">{review.comment}</p>
-                    <p className="text-xs text-muted-foreground mt-4">
-                      {new Date(review.createdAt.seconds * 1000).toLocaleDateString()}
-                    </p>
+                    {review.createdAt && (
+                      <p className="text-xs text-muted-foreground mt-4">
+                        {new Date(review.createdAt.seconds * 1000).toLocaleDateString()}
+                      </p>
+                    )}
                   </Card>
                 ))}
               </div>
