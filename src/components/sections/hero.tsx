@@ -16,7 +16,7 @@ export function HeroSection() {
             <Code className="h-16 w-16 text-primary" />
           </div>
           <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tighter text-balance">
-            Sheriff Abdulraheem
+            SheriffDev
           </h1>
           <p className="mt-4 max-w-md text-lg text-muted-foreground text-balance">
             Full Stack Developer & Creative Technologist building modern, responsive web applications.
