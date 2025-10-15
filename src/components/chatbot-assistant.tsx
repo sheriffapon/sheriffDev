@@ -212,7 +212,7 @@ export function ChatbotAssistant() {
                   className="relative w-full h-full rounded-full shadow-lg bg-transparent hover:bg-primary/20 text-primary-foreground transition-colors duration-300"
                   aria-label="Open AI Assistant"
                 >
-                  <Bot size={36} className="group-hover:scale-110 transition-transform" />
+                  <Bot size={36} className="group-hover:scale-110 transition-transform text-primary" />
                 </Button>
               </div>
             </motion.div>
@@ -222,3 +222,5 @@ export function ChatbotAssistant() {
     </>
   );
 }
+
+    
