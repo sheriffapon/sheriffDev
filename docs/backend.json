@@ -32,6 +32,14 @@
         "userId": {
           "type": "string",
           "description": "The UID of the user who submitted the review."
+        },
+        "likes": {
+          "type": "number",
+          "description": "The number of likes the review has received."
+        },
+        "dislikes": {
+          "type": "number",
+          "description": "The number of dislikes the review has received."
         }
       },
       "required": [

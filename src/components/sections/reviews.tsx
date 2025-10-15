@@ -1,8 +1,7 @@
-
 'use client';
 
 import { useState } from 'react';
-import { collection, query, orderBy, doc } from 'firebase/firestore';
+import { collection, query, orderBy, doc, increment } from 'firebase/firestore';
 import { useCollection, useFirestore, useMemoFirebase, useUser, updateDocumentNonBlocking } from '@/firebase';
 import { SectionTitle } from '../section-title';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -10,7 +9,7 @@ import { StarRating } from '../star-rating';
 import { ReviewForm } from '../review-form';
 import { Skeleton } from '../ui/skeleton';
 import { Button } from '../ui/button';
-import { Trash2, Edit } from 'lucide-react';
+import { Trash2, Edit, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -148,6 +147,14 @@ export function ReviewsSection() {
     });
   };
 
+  const handleVote = (reviewId: string, voteType: 'likes' | 'dislikes') => {
+    if (!firestore) return;
+    const reviewDocRef = doc(firestore, 'reviews', reviewId);
+    updateDocumentNonBlocking(reviewDocRef, {
+        [voteType]: increment(1)
+    });
+  };
+
   const isOwner = (reviewUserId: string) => user?.uid === reviewUserId;
 
   return (
@@ -181,12 +188,26 @@ export function ReviewsSection() {
                         <p className="font-semibold text-foreground">{review.authorName}</p>
                         <StarRating rating={review.rating} readOnly />
                       </div>
-                      <p className="text-muted-foreground">{review.comment}</p>
-                      {review.createdAt && (
-                        <p className="text-xs text-muted-foreground mt-4">
-                          {new Date(review.createdAt.seconds * 1000).toLocaleDateString()}
-                        </p>
-                      )}
+                      <p className="text-muted-foreground flex-grow">{review.comment}</p>
+                      
+                      <div className="flex items-center justify-between mt-4">
+                        <div className="flex items-center gap-4">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 flex items-center gap-1" onClick={() => handleVote(review.id, 'likes')}>
+                                <ThumbsUp className="h-4 w-4" />
+                                <span className="text-xs">{review.likes || 0}</span>
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 flex items-center gap-1" onClick={() => handleVote(review.id, 'dislikes')}>
+                                <ThumbsDown className="h-4 w-4" />
+                                <span className="text-xs">{review.dislikes || 0}</span>
+                            </Button>
+                        </div>
+                        {review.createdAt && (
+                            <p className="text-xs text-muted-foreground">
+                            {new Date(review.createdAt.seconds * 1000).toLocaleDateString()}
+                            </p>
+                        )}
+                      </div>
+
                       {canModify && (
                         <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <Dialog open={openDialogs[review.id] || false} onOpenChange={(isOpen) => setOpenDialogs(prev => ({ ...prev, [review.id]: isOpen }))}>
@@ -253,5 +274,3 @@ export function ReviewsSection() {
     </section>
   );
 }
-
-    
