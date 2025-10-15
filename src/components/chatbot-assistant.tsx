@@ -1,13 +1,13 @@
 
 "use client";
 
-import { useState, useRef, useEffect, type MouseEvent } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Bot, Send, X, Loader2, CornerDownLeft, GripVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { chat } from "@/ai/flows/chat-flow";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useDragControls } from "framer-motion";
 
 type Message = {
   text: string;
@@ -20,20 +20,8 @@ export function ChatbotAssistant() {
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
-  const chatRef = useRef<HTMLDivElement>(null);
-  const dragStartRef = useRef<{ startX: number; startY: number, initialX: number, initialY: number } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  
-  const [initialPositionSet, setInitialPositionSet] = useState(false);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && !initialPositionSet) {
-      setPosition({ x: window.innerWidth - 400, y: window.innerHeight - 550 });
-      setInitialPositionSet(true);
-    }
-  }, [initialPositionSet]);
+  const dragControls = useDragControls()
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -64,62 +52,6 @@ export function ChatbotAssistant() {
       setIsLoading(false);
     }
   };
-
-  const onMouseDown = (e: MouseEvent<HTMLDivElement>) => {
-    if (chatRef.current) {
-      setIsDragging(true);
-      dragStartRef.current = {
-        startX: e.clientX,
-        startY: e.clientY,
-        initialX: position.x,
-        initialY: position.y,
-      };
-       // Prevent text selection while dragging
-      e.preventDefault();
-    }
-  };
-  
-  const onMouseUp = () => {
-    setIsDragging(false);
-    dragStartRef.current = null;
-    if (chatRef.current) {
-      chatRef.current.style.cursor = 'grab';
-    }
-  };
-
-  const onMouseMove = (e: globalThis.MouseEvent) => {
-    if (isDragging && dragStartRef.current && chatRef.current) {
-      const dx = e.clientX - dragStartRef.current.startX;
-      const dy = e.clientY - dragStartRef.current.startY;
-      
-      const newX = dragStartRef.current.initialX + dx;
-      const newY = dragStartRef.current.initialY + dy;
-      
-      const { innerWidth, innerHeight } = window;
-      const { offsetWidth, offsetHeight } = chatRef.current;
-
-      const clampedX = Math.max(0, Math.min(newX, innerWidth - offsetWidth));
-      const clampedY = Math.max(0, Math.min(newY, innerHeight - offsetHeight));
-
-      setPosition({ x: clampedX, y: clampedY });
-    }
-  };
-
-  useEffect(() => {
-    if (isDragging) {
-      window.addEventListener("mousemove", onMouseMove);
-      window.addEventListener("mouseup", onMouseUp);
-    } else {
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseup", onMouseUp);
-    }
-
-    return () => {
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseup", onMouseUp);
-    };
-  }, [isDragging]);
-
 
   return (
     <>
@@ -178,28 +110,26 @@ export function ChatbotAssistant() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            ref={chatRef}
-            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            drag
+            dragListener={false}
+            dragControls={dragControls}
+            dragMomentum={false}
+            initial={{ opacity: 0, y: 50, scale: 0.9, x: "-50%" }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 50, scale: 0.9 }}
             transition={{ type: "spring", stiffness: 260, damping: 25 }}
-            className="fixed z-50 shadow-2xl rounded-xl"
-            style={{
-              left: `${position.x}px`,
-              top: `${position.y}px`,
-              cursor: isDragging ? "grabbing" : "grab",
-            }}
+            className="fixed z-50 shadow-2xl rounded-xl top-1/4 left-1/2"
           >
             <Card className="w-80 md:w-96 h-[500px] flex flex-col bg-background/80 backdrop-blur-xl border-white/10">
               <CardHeader
                 className="flex flex-row items-center justify-between p-3 border-b border-white/10 cursor-grab"
-                onMouseDown={onMouseDown}
+                onPointerDown={(event) => dragControls.start(event)}
               >
                 <CardTitle className="text-lg font-semibold flex items-center gap-2">
                   <GripVertical size={18} className="text-muted-foreground"/>
                   <Bot size={20} className="text-primary"/> AI Assistant
                 </CardTitle>
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsOpen(false)}>
+                <Button variant="ghost" size="icon" className="h-8 w-8 cursor-pointer" onClick={() => setIsOpen(false)}>
                   <X className="h-4 w-4" />
                 </Button>
               </CardHeader>
@@ -272,5 +202,3 @@ export function ChatbotAssistant() {
     </>
   );
 }
-
-    
