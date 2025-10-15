@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { chat } from "@/ai/flows/chat-flow";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, PanInfo } from "framer-motion";
 
 type Message = {
   text: string;
@@ -19,6 +19,7 @@ export function ChatbotAssistant() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const dragConstraintsRef = useRef<HTMLDivElement>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -54,34 +55,41 @@ export function ChatbotAssistant() {
 
   return (
     <>
+      <div ref={dragConstraintsRef} className="fixed inset-0 pointer-events-none z-50" />
       <AnimatePresence>
         {!isOpen && (
           <motion.div
+            drag
+            dragConstraints={dragConstraintsRef}
+            dragMomentum={false}
             initial={{ scale: 0, y: 50, bottom: "1.25rem", right: "1.25rem" }}
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0, y: 50 }}
             transition={{ type: "spring", stiffness: 260, damping: 20 }}
-            className="fixed bottom-5 right-5 z-50 group"
+            className="fixed bottom-5 right-5 z-50 group cursor-grab active:cursor-grabbing pointer-events-auto"
           >
             <div className="relative w-20 h-20">
-              <motion.div
-                className="absolute inset-0.5 bg-primary rounded-full"
+               <motion.div
+                className="absolute inset-0 bg-primary rounded-full origin-center"
+                style={{ scale: 0, opacity: 0 }}
                 animate={{
-                  scale: [1, 1.1, 1],
-                  opacity: [0.7, 1, 0.7],
+                  scale: [0, 1.2, 1, 1.1, 1],
+                  opacity: [0, 0.5, 0.7, 1, 0.7],
                 }}
                 transition={{
                   duration: 2,
                   ease: "easeInOut",
                   repeat: Infinity,
+                  repeatType: "mirror",
+                  times: [0, 0.2, 0.4, 0.8, 1],
                 }}
               />
-
               <motion.div
                 className="absolute inset-0 border-2 border-primary/50 rounded-full"
+                style={{ scale: 0.8, opacity: 0 }}
                 animate={{
-                  scale: [1, 1.2, 1],
-                  opacity: [0, 0.5, 0],
+                  scale: [0.8, 1.3, 1],
+                  opacity: [0, 0.8, 0],
                 }}
                 transition={{
                   duration: 3,
@@ -90,7 +98,6 @@ export function ChatbotAssistant() {
                   delay: 0.5,
                 }}
               />
-
               <Button
                 className="relative w-full h-full rounded-full shadow-lg bg-transparent hover:bg-primary/20 text-primary-foreground transition-colors duration-300"
                 onClick={() => setIsOpen(true)}
@@ -106,11 +113,11 @@ export function ChatbotAssistant() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 50, scale: 0.9, x: "-50%" }}
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 50, scale: 0.9 }}
             transition={{ type: "spring", stiffness: 260, damping: 25 }}
-            className="fixed z-50 shadow-2xl rounded-xl top-1/4 left-1/2"
+            className="fixed z-50 shadow-2xl rounded-xl top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-auto"
           >
             <Card className="w-80 md:w-96 h-[500px] flex flex-col bg-background/80 backdrop-blur-xl border-white/10">
               <CardHeader className="flex flex-row items-center justify-between p-3 border-b border-white/10">
