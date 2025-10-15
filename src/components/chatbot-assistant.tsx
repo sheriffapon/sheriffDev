@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { chat } from "@/ai/flows/chat-flow";
-import { AnimatePresence, motion, useMotionValue } from "framer-motion";
+import { AnimatePresence, motion, useMotionValue, useDragControls } from "framer-motion";
 
 type Message = {
   text: string;
@@ -23,6 +23,7 @@ export function ChatbotAssistant() {
   const constraintsRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const dragDidMove = useRef(false);
+  const dragControls = useDragControls();
 
   // Separate motion values for icon and window
   const iconX = useMotionValue(0);
@@ -32,10 +33,12 @@ export function ChatbotAssistant() {
 
   // Set initial position once the component mounts
   useEffect(() => {
+    // Position the icon at the bottom right of the screen initially
     const initialX = window.innerWidth - 120;
     const initialY = window.innerHeight - 120;
     iconX.set(initialX);
     iconY.set(initialY);
+    // Sync window position with icon
     windowX.set(initialX);
     windowY.set(initialY);
   }, [iconX, iconY, windowX, windowY]);
@@ -87,6 +90,10 @@ export function ChatbotAssistant() {
     setIsOpen(false);
   };
 
+  function startDrag(event: React.PointerEvent) {
+    dragControls.start(event);
+  }
+
   return (
     <>
       <div ref={constraintsRef} className="fixed inset-0 pointer-events-none z-40" />
@@ -94,10 +101,11 @@ export function ChatbotAssistant() {
         {isOpen ? (
           <motion.div
             key="chat-window"
-            drag
+            drag="x"
+            dragControls={dragControls}
+            dragListener={false}
             dragConstraints={constraintsRef}
             dragMomentum={false}
-            dragListener={false} // We'll use a drag handle
             className="fixed top-0 left-0 z-50 cursor-grab active:cursor-grabbing"
             style={{ x: windowX, y: windowY }}
             initial={{ opacity: 0, scale: 0.9 }}
@@ -106,18 +114,11 @@ export function ChatbotAssistant() {
             transition={{ type: "spring", stiffness: 260, damping: 25 }}
           >
             <Card className="w-80 md:w-96 h-[500px] flex flex-col bg-card/80 backdrop-blur-xl border-white/10 shadow-2xl">
-              <motion.div
-                 onPointerDown={(e) => {
-                    // This allows dragging only from the header
-                    const target = e.target as HTMLElement;
-                    if (target.closest('[data-drag-handle="true"]')) {
-                        const controls = (e.currentTarget as any)._dragControls;
-                        controls.start(e);
-                    }
-                 }}
+              <div
+                onPointerDown={startDrag}
+                className="cursor-grab active:cursor-grabbing"
               >
                 <CardHeader
-                  data-drag-handle="true"
                   className="flex flex-row items-center justify-between p-3 border-b border-white/10"
                 >
                   <CardTitle className="text-lg font-semibold flex items-center gap-2">
@@ -128,7 +129,7 @@ export function ChatbotAssistant() {
                     <X className="h-4 w-4" />
                   </Button>
                 </CardHeader>
-              </motion.div>
+              </div>
               <CardContent className="flex-grow overflow-y-auto p-4 space-y-4 cursor-auto">
                 {messages.map((msg, index) => (
                   <div
