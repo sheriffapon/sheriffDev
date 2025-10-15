@@ -2,12 +2,12 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Bot, Send, X, Loader2 } from "lucide-react";
+import { Bot, Send, X, Loader2, GripVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { chat } from "@/ai/flows/chat-flow";
-import { AnimatePresence, motion, useDragControls } from "framer-motion";
+import { AnimatePresence, motion, useMotionValue } from "framer-motion";
 
 type Message = {
   text: string;
@@ -19,11 +19,27 @@ export function ChatbotAssistant() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const constraintsRef = useRef<HTMLDivElement>(null);
-  const dragControls = useDragControls();
   
+  const constraintsRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const dragDidMove = useRef(false);
 
+  // Separate motion values for icon and window
+  const iconX = useMotionValue(0);
+  const iconY = useMotionValue(0);
+  const windowX = useMotionValue(0);
+  const windowY = useMotionValue(0);
+
+  // Set initial position once the component mounts
+  useEffect(() => {
+    const initialX = window.innerWidth - 120;
+    const initialY = window.innerHeight - 120;
+    iconX.set(initialX);
+    iconY.set(initialY);
+    windowX.set(initialX);
+    windowY.set(initialY);
+  }, [iconX, iconY, windowX, windowY]);
+  
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -53,6 +69,23 @@ export function ChatbotAssistant() {
       setIsLoading(false);
     }
   };
+  
+  const handleOpen = () => {
+    // Only open if it wasn't a drag
+    if (!dragDidMove.current) {
+        // Sync window position with icon before opening
+        windowX.set(iconX.get());
+        windowY.set(iconY.get());
+        setIsOpen(true);
+    }
+  };
+  
+  const handleClose = () => {
+    // Sync icon position with window before closing
+    iconX.set(windowX.get());
+    iconY.set(windowY.get());
+    setIsOpen(false);
+  };
 
   return (
     <>
@@ -62,32 +95,40 @@ export function ChatbotAssistant() {
           <motion.div
             key="chat-window"
             drag
-            dragControls={dragControls}
-            dragListener={false}
             dragConstraints={constraintsRef}
             dragMomentum={false}
-            className="fixed bottom-5 right-5 z-50"
+            dragListener={false} // We'll use a drag handle
+            className="fixed top-0 left-0 z-50 cursor-grab active:cursor-grabbing"
+            style={{ x: windowX, y: windowY }}
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ type: "spring", stiffness: 260, damping: 25 }}
           >
-            <Card 
-              className="w-80 md:w-96 h-[500px] flex flex-col bg-card/60 backdrop-blur-xl border-white/10 shadow-2xl cursor-grab active:cursor-grabbing"
-              onPointerDown={(e) => {
-                dragControls.start(e);
-              }}
-            >
-              <CardHeader
-                className="flex flex-row items-center justify-between p-3 border-b border-white/10"
+            <Card className="w-80 md:w-96 h-[500px] flex flex-col bg-card/80 backdrop-blur-xl border-white/10 shadow-2xl">
+              <motion.div
+                 onPointerDown={(e) => {
+                    // This allows dragging only from the header
+                    const target = e.target as HTMLElement;
+                    if (target.closest('[data-drag-handle="true"]')) {
+                        const controls = (e.currentTarget as any)._dragControls;
+                        controls.start(e);
+                    }
+                 }}
               >
-                <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                  <Bot size={20} className="text-primary" /> AI Assistant
-                </CardTitle>
-                <Button variant="ghost" size="icon" className="h-8 w-8 cursor-pointer" onClick={() => setIsOpen(false)}>
-                  <X className="h-4 w-4" />
-                </Button>
-              </CardHeader>
+                <CardHeader
+                  data-drag-handle="true"
+                  className="flex flex-row items-center justify-between p-3 border-b border-white/10"
+                >
+                  <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                    <GripVertical className="h-5 w-5 text-muted-foreground" />
+                    <Bot size={20} className="text-primary" /> AI Assistant
+                  </CardTitle>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 cursor-pointer" onClick={handleClose}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </CardHeader>
+              </motion.div>
               <CardContent className="flex-grow overflow-y-auto p-4 space-y-4 cursor-auto">
                 {messages.map((msg, index) => (
                   <div
@@ -146,9 +187,6 @@ export function ChatbotAssistant() {
                     <Send className="h-4 w-4" />
                   </Button>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1">
-                  Press Enter to send.
-                </p>
               </div>
             </Card>
           </motion.div>
@@ -158,49 +196,30 @@ export function ChatbotAssistant() {
             drag
             dragConstraints={constraintsRef}
             dragMomentum={false}
-            className="fixed bottom-5 right-5 z-50 pointer-events-auto"
+            onTap={handleOpen}
+            onDragStart={() => {
+                dragDidMove.current = true;
+            }}
+            onDragEnd={() => {
+                // Use a timeout to ensure tap event is not fired on drag end
+                setTimeout(() => {
+                    dragDidMove.current = false;
+                }, 100);
+            }}
+            className="fixed top-0 left-0 z-50"
+            style={{ x: iconX, y: iconY }}
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
             transition={{ type: "spring", stiffness: 260, damping: 20 }}
-            onTap={() => setIsOpen(true)}
           >
             <div className="group cursor-grab active:cursor-grabbing">
-              <div className="relative w-20 h-20">
-                 <motion.div
-                  className="absolute inset-0 bg-primary rounded-full origin-center"
-                  style={{ scale: 0, opacity: 0 }}
-                  animate={{
-                    scale: [0, 1.2, 1, 1.1, 1],
-                    opacity: [0, 0.5, 0.7, 1, 0.7],
-                  }}
-                  transition={{
-                    duration: 2,
-                    ease: "easeInOut",
-                    repeat: Infinity,
-                    repeatType: "mirror",
-                    times: [0, 0.2, 0.4, 0.8, 1],
-                  }}
-                />
-                <motion.div
-                  className="absolute inset-0 border-2 border-primary/50 rounded-full"
-                  style={{ scale: 0.8, opacity: 0 }}
-                  animate={{
-                    scale: [0.8, 1.3, 1],
-                    opacity: [0, 0.8, 0],
-                  }}
-                  transition={{
-                    duration: 3,
-                    ease: "easeInOut",
-                    repeat: Infinity,
-                    delay: 0.5,
-                  }}
-                />
+              <div className="relative w-16 h-16">
                 <Button
-                  className="relative w-full h-full rounded-full shadow-lg bg-transparent hover:bg-primary/20 text-primary-foreground transition-colors duration-300 pointer-events-none"
+                  className="relative w-full h-full rounded-full shadow-lg bg-primary/80 backdrop-blur-sm text-primary-foreground hover:bg-primary transition-colors duration-300"
                   aria-label="Open AI Assistant"
                 >
-                  <Bot size={36} className="group-hover:scale-110 transition-transform text-primary" />
+                  <Bot size={32} className="group-hover:scale-110 transition-transform" />
                 </Button>
               </div>
             </div>
