@@ -2,6 +2,9 @@
 "use server";
 
 import * as z from "zod";
+import { Resend } from "resend";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const emailSchema = z.object({
   name: z.string().min(2),
@@ -23,13 +26,31 @@ export async function sendEmail(formData: {
     };
   }
 
-  // Simulate sending an email
-  console.log("Sending email with the following data:", validatedFields.data);
-  // In a real app, you would integrate with an email service like Resend, SendGrid, or Nodemailer.
-  
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  const { name, email, message } = validatedFields.data;
 
-  // Always return success for this simulation
-  return { success: true, message: "Email sent successfully!" };
+  try {
+    const { data, error } = await resend.emails.send({
+      from: "Portfolio Contact <onboarding@resend.dev>",
+      to: ["sheriffabdulraheemafunsho23@gmail.com"],
+      subject: `New message from ${name} on your portfolio`,
+      reply_to: email,
+      html: `
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Message:</strong></p>
+        <p>${message}</p>
+      `,
+    });
+
+    if (error) {
+      console.error("Resend error:", error);
+      return { success: false, message: "Failed to send email." };
+    }
+
+    return { success: true, message: "Email sent successfully!" };
+
+  } catch (error) {
+    console.error("Error sending email:", error);
+    return { success: false, message: "Something went wrong." };
+  }
 }

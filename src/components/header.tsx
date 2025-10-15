@@ -103,7 +103,7 @@ export function Header() {
                 <span className="sr-only">Toggle Menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right">
+            <SheetContent side="right" className="bg-card/60 backdrop-blur-xl border-white/10">
               <nav className="grid gap-6 text-lg font-medium mt-10">
                 {navLinks.map(({ href, label }) => (
                   <Link
