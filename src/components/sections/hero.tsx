@@ -4,6 +4,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { PlaceHolderImages } from "@/lib/placeholder-images"
 import { ArrowRight, Code } from "lucide-react"
+import { AnimatedLogo } from "../animated-logo"
 
 export function HeroSection() {
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero-image');
@@ -13,10 +14,10 @@ export function HeroSection() {
       <div className="container grid lg:grid-cols-2 items-center gap-12 py-20 md:py-32">
         <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
           <div className="mb-4">
-            <Code className="h-16 w-16 text-primary" />
+            <AnimatedLogo className="h-16 w-16" />
           </div>
           <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tighter text-balance">
-            SheriffDev
+            SheriffDev👨🏽‍💻
           </h1>
           <p className="mt-4 max-w-md text-lg text-muted-foreground text-balance">
             Full Stack Developer & Creative Technologist building modern, responsive web applications.

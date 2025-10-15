@@ -2,10 +2,11 @@
 "use client"
 
 import Link from "next/link"
-import { Menu, Mail, Github, Code } from "lucide-react"
+import { Menu, Mail, Github } from "lucide-react"
 import { ThemeToggle } from "./theme-toggle"
 import { Button } from "./ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet"
+import { AnimatedLogo } from "./animated-logo"
 
 const navLinks = [
   { href: "#about", label: "About" },
@@ -18,8 +19,8 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center">
-        <Link href="/" className="mr-6 flex items-center space-x-2">
-          <Code className="h-7 w-7 text-primary" />
+        <Link href="/" className="mr-6 flex items-center space-x-2 group">
+          <AnimatedLogo />
           <span className="font-bold">SheriffDev</span>
         </Link>
         <div className="flex flex-1 items-center justify-end space-x-2">
