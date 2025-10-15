@@ -1,3 +1,4 @@
+
 "use client"
 
 import Link from "next/link"
@@ -15,11 +16,11 @@ const navLinks = [
 
 export function Header() {
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-lg">
+    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center">
         <Link href="/" className="mr-6 flex items-center space-x-2">
           <Code className="h-7 w-7 text-primary" />
-          <span className="sr-only">SheriffDev</span>
+          <span className="font-bold">SheriffDev</span>
         </Link>
         <div className="flex flex-1 items-center justify-end space-x-2">
           <nav className="hidden items-center space-x-6 text-sm font-medium md:flex">

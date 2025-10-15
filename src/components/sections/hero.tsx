@@ -15,6 +15,9 @@ export function HeroSection() {
           <div className="mb-4">
             <Code className="h-16 w-16 text-primary" />
           </div>
+          <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tighter text-balance">
+            Sheriff Abdulraheem
+          </h1>
           <p className="mt-4 max-w-md text-lg text-muted-foreground text-balance">
             Full Stack Developer & Creative Technologist building modern, responsive web applications.
           </p>
@@ -25,8 +28,8 @@ export function HeroSection() {
               </Link>
             </Button>
             <Button size="lg" variant="outline" asChild className="shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-shadow">
-                <Link href="#projects">
-                    View My Work
+                <Link href="https://github.com/sheriffapon" target="_blank" rel="noopener noreferrer">
+                    GitHub
                 </Link>
             </Button>
           </div>
