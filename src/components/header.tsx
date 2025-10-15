@@ -31,10 +31,12 @@ export function Header() {
     hidden: {
       opacity: 0,
       y: 10,
+      rotate: -10,
     },
     visible: {
       opacity: 1,
       y: 0,
+      rotate: 0,
       transition: {
         type: "spring",
         damping: 12,
@@ -55,7 +57,7 @@ export function Header() {
              animate="visible"
            >
              {sheriffDevText.map((char, index) => (
-               <motion.span key={index} variants={charVariants}>
+               <motion.span key={index} variants={charVariants} style={{display: 'inline-block'}}>
                  {char}
                </motion.span>
              ))}
