@@ -30,14 +30,10 @@ export function Header() {
   };
 
   const charVariants = {
-    hidden: { opacity: 0 },
+    hidden: { opacity: 0, y: 20 },
     visible: {
-      opacity: [0.2, 1, 0.2],
-      transition: {
-        duration: 3,
-        repeat: Infinity,
-        ease: "easeInOut",
-      },
+      opacity: 1,
+      y: 0,
     },
   };
 
@@ -58,8 +54,7 @@ export function Header() {
                 variants={charVariants}
                 style={{display: 'inline-block'}}
                 transition={{
-                    ...charVariants.visible.transition,
-                    delay: index * 0.2
+                    delay: index * 0.1
                 }}
               >
                  {char}
