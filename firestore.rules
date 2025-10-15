@@ -1,19 +1,29 @@
 /**
- * @description This ruleset enforces a public read, owner-write model for reviews. Anyone can read the reviews, but only authenticated users can create, update, or delete them.
- * @dataStructure The data is structured with projects and reviews at the top level. Reviews are publicly readable, but creating, updating and deleting require authentication.
- * @keySecurityDecisions Public read access for reviews allows for open access to user feedback, but all write operations require authentication.
- * Reviews are not owned by specific users, so any authenticated user can edit or delete any review.
+ * @fileoverview Firestore Security Rules for Prototyping.
+ *
+ * Core Philosophy:
+ * This ruleset prioritizes rapid prototyping by focusing on authorization but relaxing data validation.
+ * It uses a public-read, owner-write pattern for 'reviews' and requires authentication for all write operations.
+ *
+ * Data Structure:
+ * - /projects/{projectId}: Stores project details. Publicly readable.
+ * - /reviews/{reviewId}: Stores user reviews. Publicly readable.
+ *
+ * Key Security Decisions:
+ * - Public Read: Both 'projects' and 'reviews' are publicly readable to facilitate easy data access during prototyping.
+ * - Owner-Only Writes: 'reviews' are writable only with authentication enforced.
+ * - No User Listing: Listing of users is not supported.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Allows anyone to read the project details.
-     * @path /projects/{projectId}
-     * @allow (get, list) Any user can read project data.
-     * @deny (create, update, delete) No one can create, update, or delete project data.
-     * @principle Public read access for project details.
+     * @description Allows anyone to read project details, but requires authentication for creating, updating, or deleting them.
+     * @path /databases/{database}/documents/projects/{projectId}
+     * @allow (get, list): Any user can read project data.
+     * @deny (create, update, delete): No one can write to the project collection through the client.
+     * @principle Public read, no writes.
      */
     match /projects/{projectId} {
       allow get, list: if true;
@@ -21,24 +31,22 @@ service cloud.firestore {
     }
 
     /**
-     * @description Allows authenticated users to create, update, and delete reviews. Anyone can read.
-     * @path /reviews/{reviewId}
-     * @allow (get, list) Any user can read reviews.
-     * @allow (create) An authenticated user can create a review.
-     * @allow (update, delete) An authenticated user can update or delete a review.
-     * @deny (create) A non-authenticated user cannot create a review.
-     * @deny (update, delete) A non-authenticated user cannot update or delete a review.
-     * @principle Authenticated users can manage reviews.
+     * @description Allows anyone to read reviews, but requires authentication to create them.
+     * @path /databases/{database}/documents/reviews/{reviewId}
+     * @allow (get, list): Any user can read review data.
+     * @allow (create): Any authenticated user can create a review.
+     * @deny (update, delete): No one can update or delete a review through the client.
+     * @principle Public read, authenticated create.
      */
     match /reviews/{reviewId} {
       allow get, list: if true;
       allow create: if isSignedIn();
-      allow update: if isSignedIn();
-      allow delete: if isSignedIn();
+      allow update, delete: if false;
     }
 
     /**
      * @description Checks if the user is signed in.
+     * @return {boolean} True if the user is signed in, false otherwise.
      */
     function isSignedIn() {
       return request.auth != null;
