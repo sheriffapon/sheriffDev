@@ -1,7 +1,7 @@
 
 import Link from "next/link"
 import { Button } from "./ui/button"
-import { Github, Linkedin, Twitter, Instagram, LogIn } from "lucide-react"
+import { Github, Linkedin, Twitter, Instagram } from "lucide-react"
 
 const socialLinks = [
   { name: "GitHub", url: "https://github.com/sheriffapon", icon: <Github /> },
@@ -31,16 +31,6 @@ export function Footer() {
               </Link>
             </Button>
           ))}
-           <Button
-              variant="ghost"
-              size="icon"
-              asChild
-              aria-label="Admin Login"
-            >
-              <Link href="/login">
-                <LogIn />
-              </Link>
-            </Button>
         </div>
       </div>
     </footer>
