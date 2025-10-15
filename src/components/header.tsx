@@ -64,8 +64,8 @@ export function Header() {
         </Link>
         <div className="flex flex-1 items-center justify-end space-x-2">
           <nav className="hidden items-center space-x-6 text-sm font-medium md:flex">
-            {navLinks.map(({ href, label }, index) => (
-              <div key={href} className="relative">
+            {navLinks.map(({ href, label }) => (
+              <div key={href} className="relative group/nav-item">
                  <Link
                   href={href}
                   className="transition-colors hover:text-primary"
@@ -73,15 +73,10 @@ export function Header() {
                   {label}
                 </Link>
                 <motion.div 
-                  className="absolute -bottom-2 left-1/2 -translate-x-1/2 h-1.5 w-1.5 bg-primary rounded-full"
-                  animate={{ y: [0, -3, 0] }}
-                  transition={{
-                    duration: 1.5,
-                    repeat: Infinity,
-                    repeatType: "mirror",
-                    ease: "easeInOut",
-                    delay: index * 0.2
-                  }}
+                  className="absolute -bottom-2 left-1/2 -translate-x-1/2 h-1.5 w-1.5 bg-primary rounded-full opacity-0 group-hover/nav-item:opacity-100"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
                 />
               </div>
             ))}
