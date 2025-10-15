@@ -62,23 +62,21 @@ export function ChatbotAssistant() {
           <motion.div
             key="chat-window"
             drag
-            dragListener={false}
             dragControls={dragControls}
+            dragListener={false}
             dragConstraints={constraintsRef}
             dragMomentum={false}
-            className="fixed bottom-5 right-5 z-50 cursor-grab active:cursor-grabbing"
+            className="fixed bottom-5 right-5 z-50"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ type: "spring", stiffness: 260, damping: 25 }}
           >
             <Card 
+              className="w-80 md:w-96 h-[500px] flex flex-col bg-card/60 backdrop-blur-xl border-white/10 shadow-2xl cursor-grab active:cursor-grabbing"
               onPointerDown={(e) => {
-                // Prevent drag from starting on buttons, inputs, etc.
-                if ((e.target as HTMLElement).closest('button, input, a, [role="button"]')) return;
                 dragControls.start(e);
               }}
-              className="w-80 md:w-96 h-[500px] flex flex-col bg-card/60 backdrop-blur-xl border-white/10 shadow-2xl"
             >
               <CardHeader
                 className="flex flex-row items-center justify-between p-3 border-b border-white/10"
@@ -90,7 +88,7 @@ export function ChatbotAssistant() {
                   <X className="h-4 w-4" />
                 </Button>
               </CardHeader>
-              <CardContent className="flex-grow overflow-y-auto p-4 space-y-4">
+              <CardContent className="flex-grow overflow-y-auto p-4 space-y-4 cursor-auto">
                 {messages.map((msg, index) => (
                   <div
                     key={index}
@@ -126,7 +124,7 @@ export function ChatbotAssistant() {
                 )}
                 <div ref={messagesEndRef} />
               </CardContent>
-              <div className="p-3 border-t border-white/10">
+              <div className="p-3 border-t border-white/10 cursor-auto">
                 <div className="relative">
                   <Input
                     type="text"
@@ -160,14 +158,14 @@ export function ChatbotAssistant() {
             drag
             dragConstraints={constraintsRef}
             dragMomentum={false}
-            className="fixed bottom-5 right-5 z-50 cursor-grab active:cursor-grabbing pointer-events-auto"
+            className="fixed bottom-5 right-5 z-50 pointer-events-auto"
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
             transition={{ type: "spring", stiffness: 260, damping: 20 }}
             onTap={() => setIsOpen(true)}
           >
-            <div className="group">
+            <div className="group cursor-grab active:cursor-grabbing">
               <div className="relative w-20 h-20">
                  <motion.div
                   className="absolute inset-0 bg-primary rounded-full origin-center"
@@ -199,7 +197,7 @@ export function ChatbotAssistant() {
                   }}
                 />
                 <Button
-                  className="relative w-full h-full rounded-full shadow-lg bg-transparent hover:bg-primary/20 text-primary-foreground transition-colors duration-300"
+                  className="relative w-full h-full rounded-full shadow-lg bg-transparent hover:bg-primary/20 text-primary-foreground transition-colors duration-300 pointer-events-none"
                   aria-label="Open AI Assistant"
                 >
                   <Bot size={36} className="group-hover:scale-110 transition-transform text-primary" />
