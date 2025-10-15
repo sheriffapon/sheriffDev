@@ -63,42 +63,55 @@ export function ChatbotAssistant() {
         x: e.clientX,
         y: e.clientY,
         initialX: chatRef.current.offsetLeft,
-        initialY: window.innerHeight - chatRef.current.offsetTop - chatRef.current.offsetHeight,
+        initialY: chatRef.current.offsetTop,
       };
+       // Prevent text selection while dragging
+      e.preventDefault();
     }
   };
 
-  const onMouseMove = (e: MouseEvent<HTMLDivElement> | globalThis.MouseEvent) => {
+  const onMouseMove = (e: globalThis.MouseEvent) => {
     if (isDragging && dragStartRef.current && chatRef.current) {
       const dx = e.clientX - dragStartRef.current.x;
       const dy = e.clientY - dragStartRef.current.y;
       
       const newX = dragStartRef.current.initialX + dx;
-      const newY = dragStartRef.current.initialY - dy;
+      const newY = dragStartRef.current.initialY + dy;
 
-      setPosition({ x: newX, y: newY });
+      // We'll use transform for smoother animation instead of top/left
+      chatRef.current.style.transform = `translate(${newX}px, ${newY}px)`;
     }
   };
-
-  const onMouseUp = () => {
+  
+  const onMouseUp = (e: globalThis.MouseEvent) => {
+    if (isDragging && dragStartRef.current && chatRef.current) {
+        const dx = e.clientX - dragStartRef.current.x;
+        const dy = e.clientY - dragStartRef.current.y;
+        const newX = dragStartRef.current.initialX + dx;
+        const newY = dragStartRef.current.initialY + dy;
+        
+        // Update the final position in state
+        setPosition({ x: newX, y: newY });
+        chatRef.current.style.left = `${newX}px`;
+        chatRef.current.style.top = `${newY}px`;
+        chatRef.current.style.transform = '';
+    }
     setIsDragging(false);
     dragStartRef.current = null;
   };
-  
+
   useEffect(() => {
-    const handleMouseUp = () => onMouseUp();
-    const handleMouseMove = (e: globalThis.MouseEvent) => onMouseMove(e);
-    
     if (isDragging) {
-      window.addEventListener("mousemove", handleMouseMove);
-      window.addEventListener("mouseup", handleMouseUp);
+      window.addEventListener("mousemove", onMouseMove);
+      window.addEventListener("mouseup", onMouseUp);
     }
 
     return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
     };
   }, [isDragging]);
+
 
   return (
     <>
@@ -133,7 +146,9 @@ export function ChatbotAssistant() {
             className="fixed z-50 shadow-2xl rounded-xl"
             style={{
               left: `${position.x}px`,
-              bottom: `${position.y}px`,
+              top: `${position.y}px`,
+              bottom: 'auto',
+              right: 'auto',
               cursor: isDragging ? "grabbing" : "default",
             }}
           >
@@ -219,5 +234,3 @@ export function ChatbotAssistant() {
     </>
   );
 }
-
-    
