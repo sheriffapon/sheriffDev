@@ -7,6 +7,7 @@ import { ThemeToggle } from "./theme-toggle"
 import { Button } from "./ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet"
 import { AnimatedLogo } from "./animated-logo"
+import { motion }from "framer-motion"
 
 const navLinks = [
   { href: "#about", label: "About" },
@@ -16,12 +17,49 @@ const navLinks = [
 ]
 
 export function Header() {
+  const sheriffDevText = "SheriffDev".split("");
+  
+  const textVariants = {
+    hidden: { opacity: 0 },
+    visible: (i = 1) => ({
+      opacity: 1,
+      transition: { staggerChildren: 0.1, delayChildren: 0.1 * i },
+    }),
+  };
+
+  const charVariants = {
+    hidden: {
+      opacity: 0,
+      y: 10,
+    },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: "spring",
+        damping: 12,
+        stiffness: 100,
+      },
+    },
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center">
         <Link href="/" className="mr-6 flex items-center space-x-2 group">
           <AnimatedLogo />
-          <span className="font-bold">SheriffDev</span>
+          <motion.div
+             className="font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-foreground to-primary"
+             variants={textVariants}
+             initial="hidden"
+             animate="visible"
+           >
+             {sheriffDevText.map((char, index) => (
+               <motion.span key={index} variants={charVariants}>
+                 {char}
+               </motion.span>
+             ))}
+           </motion.div>
         </Link>
         <div className="flex flex-1 items-center justify-end space-x-2">
           <nav className="hidden items-center space-x-6 text-sm font-medium md:flex">
