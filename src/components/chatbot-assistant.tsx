@@ -64,6 +64,7 @@ export function ChatbotAssistant() {
             drag
             dragConstraints={dragConstraintsRef}
             dragMomentum={false}
+            onTap={() => setIsOpen(true)}
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
@@ -102,8 +103,7 @@ export function ChatbotAssistant() {
                 }}
               />
               <Button
-                className="relative w-full h-full rounded-full shadow-lg bg-transparent hover:bg-primary/20 text-primary-foreground transition-colors duration-300"
-                onClick={() => setIsOpen(true)}
+                className="relative w-full h-full rounded-full shadow-lg bg-transparent hover:bg-primary/20 text-primary-foreground transition-colors duration-300 pointer-events-none"
                 aria-label="Open AI Assistant"
               >
                 <Bot size={36} className="group-hover:scale-110 transition-transform" />
