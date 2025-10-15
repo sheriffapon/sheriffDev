@@ -5,7 +5,13 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
 }
+
+body {
+  overflow-x: hidden; /* Prevent horizontal scrolling on body */
+}
+
 
 @layer base {
   :root {
@@ -92,7 +98,7 @@ html {
   }
 
   section {
-    @apply py-20 sm:py-32;
+    @apply py-16 sm:py-24;
   }
 }
 
