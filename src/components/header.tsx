@@ -1,4 +1,3 @@
-
 "use client"
 
 import Link from "next/link"
@@ -16,7 +15,7 @@ const navLinks = [
 
 export function Header() {
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-lg">
       <div className="container flex h-16 items-center">
         <Link href="/" className="mr-6 flex items-center space-x-2">
           <Briefcase className="h-6 w-6 text-primary" />
@@ -35,13 +34,13 @@ export function Header() {
             ))}
           </nav>
           <div className="hidden items-center gap-2 md:flex">
-             <Button variant="outline" size="sm" asChild>
+             <Button variant="outline" size="sm" asChild className="shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-shadow">
                 <a href="/resume.pdf" target="_blank" rel="noopener noreferrer">
                     <Download className="mr-2 h-4 w-4" />
                     Resume
                 </a>
             </Button>
-            <Button variant="outline" size="sm" asChild>
+            <Button variant="outline" size="sm" asChild className="shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-shadow">
                 <a href="mailto:sheriffapon@gmail.com">
                     <Mail className="mr-2 h-4 w-4" />
                     Email
