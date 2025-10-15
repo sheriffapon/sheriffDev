@@ -22,6 +22,7 @@ export function ChatbotAssistant() {
   const dragConstraintsRef = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
+  const wasDragged = useRef(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -64,7 +65,18 @@ export function ChatbotAssistant() {
             drag
             dragConstraints={dragConstraintsRef}
             dragMomentum={false}
-            onTap={() => setIsOpen(true)}
+            onDragStart={() => wasDragged.current = true}
+            onDragEnd={() => {
+                // Use a timeout to reset the drag state, allowing onTap to be suppressed
+                setTimeout(() => {
+                    wasDragged.current = false;
+                }, 10);
+            }}
+            onTap={() => {
+                if (!wasDragged.current) {
+                    setIsOpen(true);
+                }
+            }}
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
@@ -119,15 +131,29 @@ export function ChatbotAssistant() {
             drag
             dragConstraints={dragConstraintsRef}
             dragMomentum={false}
+            dragListener={false} // Disable direct drag on the window
             initial={{ opacity: 0, y: 50, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 50, scale: 0.9 }}
             transition={{ type: "spring", stiffness: 260, damping: 25 }}
-            className="fixed z-50 shadow-2xl rounded-xl top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-auto cursor-grab active:cursor-grabbing"
+            className="fixed z-50 shadow-2xl rounded-xl top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-auto"
             style={{ x, y }} // Use the same motion values to persist position
           >
             <Card className="w-80 md:w-96 h-[500px] flex flex-col bg-card/60 backdrop-blur-xl border-white/10">
+              <motion.div
+                onPointerDown={(e) => {
+                    // This allows dragging from the header
+                    const target = e.target as HTMLElement;
+                    if (target.closest('[data-drag-handle]')) {
+                        const controls = (e.target as any).closest('[data-drag-controls-wrapper]').dragControls;
+                        controls.start(e);
+                    }
+                }}
+                data-drag-controls-wrapper
+                className="cursor-grab active:cursor-grabbing"
+              >
               <CardHeader
+                data-drag-handle
                 className="flex flex-row items-center justify-between p-3 border-b border-white/10"
               >
                 <CardTitle className="text-lg font-semibold flex items-center gap-2">
@@ -140,6 +166,7 @@ export function ChatbotAssistant() {
                   </Button>
                 </div>
               </CardHeader>
+              </motion.div>
               <CardContent className="flex-grow overflow-y-auto p-4 space-y-4">
                 {messages.map((msg, index) => (
                   <div
