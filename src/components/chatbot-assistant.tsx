@@ -65,82 +65,14 @@ export function ChatbotAssistant() {
     <>
       <div ref={dragConstraintsRef} className="fixed inset-0 pointer-events-none z-50" />
       <AnimatePresence>
-        {!isOpen && (
-          <motion.div
-            drag
-            dragConstraints={dragConstraintsRef}
-            dragMomentum={false}
-            onDragStart={() => {
-              wasDragged.current = true;
-            }}
-            onDragEnd={() => {
-              // Use a timeout to reset the drag state, allowing onTap to be suppressed
-              setTimeout(() => {
-                wasDragged.current = false;
-              }, 10);
-            }}
-            onTap={() => {
-              if (!wasDragged.current) {
-                setIsOpen(true);
-              }
-            }}
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 260, damping: 20 }}
-            className="fixed bottom-5 right-5 z-50 group cursor-grab active:cursor-grabbing pointer-events-auto"
-            style={{ x, y }}
-          >
-            <div className="relative w-20 h-20">
-               <motion.div
-                className="absolute inset-0 bg-primary rounded-full origin-center"
-                style={{ scale: 0, opacity: 0 }}
-                animate={{
-                  scale: [0, 1.2, 1, 1.1, 1],
-                  opacity: [0, 0.5, 0.7, 1, 0.7],
-                }}
-                transition={{
-                  duration: 2,
-                  ease: "easeInOut",
-                  repeat: Infinity,
-                  repeatType: "mirror",
-                  times: [0, 0.2, 0.4, 0.8, 1],
-                }}
-              />
-              <motion.div
-                className="absolute inset-0 border-2 border-primary/50 rounded-full"
-                style={{ scale: 0.8, opacity: 0 }}
-                animate={{
-                  scale: [0.8, 1.3, 1],
-                  opacity: [0, 0.8, 0],
-                }}
-                transition={{
-                  duration: 3,
-                  ease: "easeInOut",
-                  repeat: Infinity,
-                  delay: 0.5,
-                }}
-              />
-              <Button
-                className="relative w-full h-full rounded-full shadow-lg bg-transparent hover:bg-primary/20 text-primary-foreground transition-colors duration-300 pointer-events-none"
-                aria-label="Open AI Assistant"
-              >
-                <Bot size={36} className="group-hover:scale-110 transition-transform" />
-              </Button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {isOpen && (
+        {isOpen ? (
           <motion.div
             drag
             dragListener={false}
             dragControls={dragControls}
             dragConstraints={dragConstraintsRef}
             dragMomentum={false}
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={{ opacity: 0, scale: 0.9, x: x.get(), y: y.get() }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ type: "spring", stiffness: 260, damping: 25 }}
@@ -229,6 +161,70 @@ export function ChatbotAssistant() {
                 </p>
               </div>
             </Card>
+          </motion.div>
+        ) : (
+          <motion.div
+            drag
+            dragConstraints={dragConstraintsRef}
+            dragMomentum={false}
+            onDragStart={() => {
+              wasDragged.current = true;
+            }}
+            onDragEnd={() => {
+              // Use a timeout to reset the drag state, allowing onTap to be suppressed
+              setTimeout(() => {
+                wasDragged.current = false;
+              }, 10);
+            }}
+            onTap={() => {
+              if (!wasDragged.current) {
+                setIsOpen(true);
+              }
+            }}
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 260, damping: 20 }}
+            className="fixed bottom-5 right-5 z-50 group cursor-grab active:cursor-grabbing pointer-events-auto"
+            style={{ x, y }}
+          >
+            <div className="relative w-20 h-20">
+               <motion.div
+                className="absolute inset-0 bg-primary rounded-full origin-center"
+                style={{ scale: 0, opacity: 0 }}
+                animate={{
+                  scale: [0, 1.2, 1, 1.1, 1],
+                  opacity: [0, 0.5, 0.7, 1, 0.7],
+                }}
+                transition={{
+                  duration: 2,
+                  ease: "easeInOut",
+                  repeat: Infinity,
+                  repeatType: "mirror",
+                  times: [0, 0.2, 0.4, 0.8, 1],
+                }}
+              />
+              <motion.div
+                className="absolute inset-0 border-2 border-primary/50 rounded-full"
+                style={{ scale: 0.8, opacity: 0 }}
+                animate={{
+                  scale: [0.8, 1.3, 1],
+                  opacity: [0, 0.8, 0],
+                }}
+                transition={{
+                  duration: 3,
+                  ease: "easeInOut",
+                  repeat: Infinity,
+                  delay: 0.5,
+                }}
+              />
+              <Button
+                className="relative w-full h-full rounded-full shadow-lg bg-transparent hover:bg-primary/20 text-primary-foreground transition-colors duration-300 pointer-events-none"
+                aria-label="Open AI Assistant"
+              >
+                <Bot size={36} className="group-hover:scale-110 transition-transform" />
+              </Button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
