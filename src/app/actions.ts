@@ -12,6 +12,12 @@ const emailSchema = z.object({
   message: z.string().min(10),
 });
 
+const reviewEmailSchema = z.object({
+  authorName: z.string(),
+  comment: z.string(),
+  rating: z.number(),
+});
+
 export async function sendEmail(formData: {
   name: string;
   email: string;
@@ -54,5 +60,39 @@ export async function sendEmail(formData: {
     console.error("Error sending email:", error);
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
     return { success: false, message: `Something went wrong: ${errorMessage}` };
+  }
+}
+
+export async function sendReviewNotificationEmail(reviewData: {
+  authorName: string;
+  comment: string;
+  rating: number;
+}) {
+  const validatedFields = reviewEmailSchema.safeParse(reviewData);
+
+  if (!validatedFields.success) {
+    // This is a server-side validation, so we'll just log the error
+    console.error("Invalid review data for email:", validatedFields.error.flatten().fieldErrors);
+    return;
+  }
+  
+  const { authorName, comment, rating } = validatedFields.data;
+
+  try {
+    await resend.emails.send({
+      from: "Portfolio Notification <onboarding@resend.dev>",
+      to: ["sheriffabdulraheemafunsho23@gmail.com"],
+      subject: `New ${"⭐".repeat(rating)} Review on Your Portfolio!`,
+      html: `
+        <h2>You've received a new review!</h2>
+        <p><strong>Author:</strong> ${authorName}</p>
+        <p><strong>Rating:</strong> ${"⭐".repeat(rating)}</p>
+        <p><strong>Comment:</strong></p>
+        <p>${comment}</p>
+      `,
+    });
+  } catch (error) {
+    // We don't want to block the user flow if the email fails, so we just log it.
+    console.error("Error sending review notification email:", error);
   }
 }

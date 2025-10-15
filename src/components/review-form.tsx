@@ -17,10 +17,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { StarRating } from './star-rating';
-import { useFirestore, useUser } from '@/firebase';
+import { useFirestore } from '@/firebase';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { collection, serverTimestamp } from 'firebase/firestore';
 import { Send } from 'lucide-react';
+import { useUser } from '@/firebase/provider';
+import { sendReviewNotificationEmail } from '@/app/actions';
+
 
 const formSchema = z.object({
   authorName: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -61,8 +64,11 @@ export function ReviewForm() {
       await addDocumentNonBlocking(reviewsCollection, {
         ...values,
         createdAt: serverTimestamp(),
-        userId: user.uid, // Associate review with the anonymous user
+        userId: user.uid,
       });
+
+      // Don't await this, let it run in the background
+      sendReviewNotificationEmail(values);
 
       toast({
         title: 'Review Submitted!',
