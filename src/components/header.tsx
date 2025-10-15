@@ -74,7 +74,7 @@ export function Header() {
                       </a>
                   </Button>
                   <Button variant="outline" asChild>
-                      <a href="mailto:sheriffapon@gmail.com">
+                      <a href="mailto:sheriffabdulraheemafunsho23@gmail.com">
                           <Mail className="mr-2 h-4 w-4" />
                           Email
                       </a>
