@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { chat } from '@/ai/flows/chat-flow';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, PanInfo } from 'framer-motion';
 
 type Message = {
   text: string;
@@ -26,11 +26,13 @@ export function ChatbotAssistant() {
   const constraintsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Set initial position to bottom-right corner
-    const initialX = window.innerWidth - 100;
-    const initialY = window.innerHeight - 100;
-    setPosition({ x: initialX, y: initialY });
-    setIsInitialized(true);
+    // Set initial position to bottom-right corner on mount
+    if (typeof window !== 'undefined') {
+      const initialX = window.innerWidth - 100;
+      const initialY = window.innerHeight - 100;
+      setPosition({ x: initialX, y: initialY });
+      setIsInitialized(true);
+    }
   }, []);
 
   const scrollToBottom = () => {
@@ -66,6 +68,10 @@ export function ChatbotAssistant() {
   const handleOpen = () => setIsOpen(true);
   const handleClose = () => setIsOpen(false);
 
+  const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    setPosition({ x: info.point.x, y: info.point.y });
+  };
+
   if (!isInitialized) {
     return null;
   }
@@ -79,20 +85,18 @@ export function ChatbotAssistant() {
             drag
             dragConstraints={constraintsRef}
             dragMomentum={false}
-            initial={{ opacity: 0, scale: 0.9, x: position.x, y: position.y }}
+            initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1, x: position.x, y: position.y }}
             exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.15 } }}
             transition={{ type: 'spring', stiffness: 260, damping: 25 }}
             className="fixed z-50 pointer-events-auto cursor-grab active:cursor-grabbing"
-            onDragEnd={(_event, info) => {
-              setPosition({ x: info.point.x, y: info.point.y });
-            }}
+            onDragEnd={handleDragEnd}
           >
             <Card className="w-80 md:w-96 h-[500px] flex flex-col bg-card/80 backdrop-blur-xl border-white/10 shadow-2xl">
               <CardHeader 
                 className="flex flex-row items-center justify-between p-3 border-b border-white/10"
               >
-                <CardTitle className="text-lg font-semibold flex items-center gap-2 pointer-events-none">
+                <CardTitle className="text-lg font-semibold flex items-center gap-2">
                   <Bot size={20} className="text-primary" /> AI Assistant
                 </CardTitle>
                 <Button
@@ -104,7 +108,7 @@ export function ChatbotAssistant() {
                   <X className="h-4 w-4" />
                 </Button>
               </CardHeader>
-              <CardContent className="flex-grow overflow-y-auto p-4 space-y-4 cursor-auto">
+              <CardContent className="flex-grow overflow-y-auto p-4 space-y-4">
                 {messages.map((msg, index) => (
                   <div
                     key={index}
@@ -140,7 +144,7 @@ export function ChatbotAssistant() {
                 )}
                 <div ref={messagesEndRef} />
               </CardContent>
-              <div className="p-3 border-t border-white/10 cursor-auto">
+              <div className="p-3 border-t border-white/10">
                 <div className="relative">
                   <Input
                     type="text"
@@ -172,10 +176,8 @@ export function ChatbotAssistant() {
             dragConstraints={constraintsRef}
             dragMomentum={false}
             onTap={handleOpen}
-            onDragEnd={(_event, info) => {
-              setPosition({ x: info.point.x, y: info.point.y });
-            }}
-            initial={{ scale: 0, opacity: 0, x: position.x, y: position.y }}
+            onDragEnd={handleDragEnd}
+            initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1, x: position.x, y: position.y }}
             exit={{ scale: 0, opacity: 0, transition: { duration: 0.2 } }}
             transition={{ type: 'spring', stiffness: 260, damping: 20 }}
