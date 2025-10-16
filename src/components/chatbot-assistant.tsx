@@ -1,18 +1,13 @@
 
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, type PointerEvent } from 'react';
 import { Bot, Send, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { chat } from '@/ai/flows/chat-flow';
-import {
-  AnimatePresence,
-  motion,
-  useDragControls,
-  type PanInfo,
-} from 'framer-motion';
+import { AnimatePresence, motion, useDragControls } from 'framer-motion';
 
 type Message = {
   text: string;
@@ -24,19 +19,18 @@ export function ChatbotAssistant() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-
-  // Position is stored in a ref to persist between renders without causing re-renders on change.
-  const position = useRef({ x: 0, y: 0 });
+  const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
 
   const constraintsRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const dragControls = useDragControls();
 
-  // Set initial position only once on the client.
+  // Correctly set initial position only on the client-side after mount
   useEffect(() => {
-    position.current = {
+    setPosition({
       x: window.innerWidth - 80,
       y: window.innerHeight - 80,
-    };
+    });
   }, []);
 
   const scrollToBottom = () => {
@@ -69,13 +63,22 @@ export function ChatbotAssistant() {
     }
   };
 
-  const handleOpen = () => setIsOpen(true);
+  const handleOpen = (e: PointerEvent) => {
+    // This check ensures a "tap" and not the end of a "drag" opens the chat
+    const target = e.target as HTMLElement;
+    if (target.getAttribute('data-drag-released') === 'true') {
+      target.removeAttribute('data-drag-released');
+      return;
+    }
+    setIsOpen(true);
+  };
+  
   const handleClose = () => setIsOpen(false);
 
-  const onDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-    // Update the ref with the new position after dragging.
-    position.current = info.point;
-  };
+  // Don't render anything on the server or until the position is calculated.
+  if (!position) {
+    return null;
+  }
 
   return (
     <>
@@ -83,29 +86,38 @@ export function ChatbotAssistant() {
         ref={constraintsRef}
         className="fixed inset-0 pointer-events-none z-40"
       />
-
       <AnimatePresence>
         {!isOpen ? (
           <motion.div
             key="chat-icon"
             drag
-            dragConstraints={constraintsRef}
-            dragMomentum={false}
-            onDragEnd={onDragEnd}
+            dragControls={dragControls}
+            dragListener={false} // We trigger drag manually
+            onPointerDown={(e) => dragControls.start(e)}
+            onDragEnd={(_event, info) => {
+              setPosition({ x: info.point.x, y: info.point.y });
+            }}
             onTap={handleOpen}
+            onTapStart={(e) => {
+              (e.target as HTMLElement).setAttribute('data-drag-released', 'false');
+            }}
+            onDrag={(e) => {
+              (e.target as HTMLElement).setAttribute('data-drag-released', 'true');
+            }}
             className="fixed z-50 cursor-grab active:cursor-grabbing"
             initial={{
-              x: typeof window !== 'undefined' ? window.innerWidth - 80 : 0,
-              y: typeof window !== 'undefined' ? window.innerHeight - 80 : 0,
+              x: position.x,
+              y: position.y,
               scale: 0,
               opacity: 0,
             }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0, transition: { duration: 0.2 } }}
             transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+            style={{ x: position.x, y: position.y }}
           >
             <Button
-              className="w-16 h-16 rounded-full shadow-lg bg-primary/80 backdrop-blur-sm text-primary-foreground hover:bg-primary transition-colors duration-300"
+              className="w-16 h-16 rounded-full shadow-lg bg-primary/80 backdrop-blur-sm text-primary-foreground hover:bg-primary transition-colors duration-300 pointer-events-none"
               aria-label="Open AI Assistant"
             >
               <Bot
@@ -118,23 +130,36 @@ export function ChatbotAssistant() {
           <motion.div
             key="chat-window"
             drag
-            dragConstraints={constraintsRef}
-            dragMomentum={false}
-            onDragEnd={onDragEnd}
+            dragControls={dragControls}
+            dragListener={false} // We trigger drag manually
+            onPointerDown={(e) => {
+                const target = e.target as HTMLElement;
+                // Only allow dragging from the header
+                if (target.closest('[data-drag-handle="true"]')) {
+                    dragControls.start(e);
+                }
+            }}
+            onDragEnd={(_event, info) => {
+              setPosition({ x: info.point.x, y: info.point.y });
+            }}
             className="fixed z-50 cursor-grab active:cursor-grabbing"
             initial={{
-              x: position.current.x,
-              y: position.current.y,
+              x: position.x,
+              y: position.y,
               opacity: 0,
               scale: 0.9,
             }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.15 } }}
             transition={{ type: 'spring', stiffness: 260, damping: 25 }}
+            style={{ x: position.x, y: position.y }}
           >
             <Card className="w-80 md:w-96 h-[500px] flex flex-col bg-card/80 backdrop-blur-xl border-white/10 shadow-2xl">
-              <CardHeader className="flex flex-row items-center justify-between p-3 border-b border-white/10">
-                <CardTitle className="text-lg font-semibold flex items-center gap-2">
+              <CardHeader 
+                data-drag-handle="true"
+                className="flex flex-row items-center justify-between p-3 border-b border-white/10 cursor-grab active:cursor-grabbing"
+              >
+                <CardTitle className="text-lg font-semibold flex items-center gap-2 pointer-events-none">
                   <Bot size={20} className="text-primary" /> AI Assistant
                 </CardTitle>
                 <Button
