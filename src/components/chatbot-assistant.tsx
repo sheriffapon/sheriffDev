@@ -28,12 +28,15 @@ export function ChatbotAssistant() {
   const y = useMotionValue(0);
 
   useEffect(() => {
-    // Position the icon in the bottom-right corner initially.
-    // We subtract the size of the icon and some padding.
-    const initialX = window.innerWidth - 80;
-    const initialY = window.innerHeight - 80;
-    x.set(initialX);
-    y.set(initialY);
+    // This effect runs only once on the client to set the initial position.
+    // It avoids server-client mismatch for window dimensions.
+    const setInitialPosition = () => {
+      const initialX = window.innerWidth - 80;
+      const initialY = window.innerHeight - 80;
+      x.set(initialX);
+      y.set(initialY);
+    };
+    setInitialPosition();
   }, [x, y]);
   
   const scrollToBottom = () => {
@@ -67,10 +70,11 @@ export function ChatbotAssistant() {
   };
   
   const handleOpen = () => {
+    // Only open if a drag didn't happen
     if (!dragDidMove.current) {
         setIsOpen(true);
     }
-    // Reset drag flag
+    // Reset drag flag after a short delay to ensure clean taps
     setTimeout(() => {
         dragDidMove.current = false;
     }, 50);
@@ -78,6 +82,8 @@ export function ChatbotAssistant() {
   
   const handleClose = () => {
     setIsOpen(false);
+    // After closing, we can reset the drag flag immediately
+    dragDidMove.current = false;
   };
 
   return (
@@ -90,12 +96,8 @@ export function ChatbotAssistant() {
             drag
             dragConstraints={constraintsRef}
             dragMomentum={false}
-            onDragEnd={(_, info) => {
-              x.set(info.point.x);
-              y.set(info.point.y);
-            }}
             className="fixed z-50 cursor-grab active:cursor-grabbing"
-            style={{ x, y }}
+            style={{ x, y }} // Use the shared motion values
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
@@ -182,13 +184,9 @@ export function ChatbotAssistant() {
             onDragStart={() => {
                 dragDidMove.current = true;
             }}
-            onDragEnd={(_, info) => {
-              x.set(info.point.x);
-              y.set(info.point.y);
-            }}
-            onTap={handleOpen}
+            onTap={handleOpen} // Use onTap for a combined press/release event
             className="fixed z-50"
-            style={{ x, y }}
+            style={{ x, y }} // Use the shared motion values
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
