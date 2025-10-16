@@ -1,13 +1,13 @@
 
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Bot, Send, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { chat } from "@/ai/flows/chat-flow";
-import { AnimatePresence, motion, useMotionValue } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 
 type Message = {
   text: string;
@@ -20,19 +20,18 @@ export function ChatbotAssistant() {
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   
+  const [position, setPosition] = useState<{ x: number, y: number } | null>(null);
+
   const constraintsRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  // Shared position for the icon and the chat window
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-
-  // Set initial position on the client-side to avoid SSR issues
   useEffect(() => {
-    // Position it in the bottom-right corner initially
-    x.set(window.innerWidth - 80);
-    y.set(window.innerHeight - 80);
-  }, [x, y]);
+    // Set initial position on the client-side to avoid SSR issues with window
+    setPosition({
+        x: window.innerWidth - 80,
+        y: window.innerHeight - 80,
+    });
+  }, []);
   
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -63,32 +62,63 @@ export function ChatbotAssistant() {
       setIsLoading(false);
     }
   };
+  
+  const handleOpen = () => setIsOpen(true);
+  const handleClose = () => setIsOpen(false);
 
   return (
     <>
       <div ref={constraintsRef} className="fixed inset-0 pointer-events-none z-40" />
+      
       <AnimatePresence>
-        {isOpen ? (
+        {!isOpen && position && (
+          <motion.div
+            key="chat-icon"
+            drag
+            dragConstraints={constraintsRef}
+            dragMomentum={false}
+            onDragEnd={(event, info) => {
+              setPosition({ x: info.point.x, y: info.point.y });
+            }}
+            onTap={handleOpen}
+            className="fixed z-50 cursor-grab active:cursor-grabbing"
+            initial={{ x: position.x, y: position.y, scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0, opacity: 0, transition: { duration: 0.2 } }}
+            transition={{ type: "spring", stiffness: 260, damping: 20 }}
+          >
+            <Button
+              className="w-16 h-16 rounded-full shadow-lg bg-primary/80 backdrop-blur-sm text-primary-foreground hover:bg-primary transition-colors duration-300"
+              aria-label="Open AI Assistant"
+            >
+              <Bot size={32} className="group-hover:scale-110 transition-transform" />
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
+      <AnimatePresence>
+        {isOpen && position && (
           <motion.div
             key="chat-window"
             drag
             dragConstraints={constraintsRef}
             dragMomentum={false}
+            onDragEnd={(event, info) => {
+              setPosition({ x: info.point.x, y: info.point.y });
+            }}
             className="fixed z-50 cursor-grab active:cursor-grabbing"
-            style={{ x, y }} // Use the shared motion values
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={{ x: position.x, y: position.y, opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.15 } }}
             transition={{ type: "spring", stiffness: 260, damping: 25 }}
           >
             <Card className="w-80 md:w-96 h-[500px] flex flex-col bg-card/80 backdrop-blur-xl border-white/10 shadow-2xl">
-              <CardHeader
-                className="flex flex-row items-center justify-between p-3 border-b border-white/10"
-              >
+              <CardHeader className="flex flex-row items-center justify-between p-3 border-b border-white/10">
                 <CardTitle className="text-lg font-semibold flex items-center gap-2">
                   <Bot size={20} className="text-primary" /> AI Assistant
                 </CardTitle>
-                <Button variant="ghost" size="icon" className="h-8 w-8 cursor-pointer" onClick={() => setIsOpen(false)}>
+                <Button variant="ghost" size="icon" className="h-8 w-8 cursor-pointer" onClick={handleClose}>
                   <X className="h-4 w-4" />
                 </Button>
               </CardHeader>
@@ -152,31 +182,6 @@ export function ChatbotAssistant() {
                 </div>
               </div>
             </Card>
-          </motion.div>
-        ) : (
-          <motion.div
-            key="chat-icon"
-            drag
-            dragConstraints={constraintsRef}
-            dragMomentum={false}
-            onTap={() => setIsOpen(true)}
-            className="fixed z-50"
-            style={{ x, y }} // Use the shared motion values
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 260, damping: 20 }}
-          >
-            <div className="group cursor-grab active:cursor-grabbing">
-              <div className="relative w-16 h-16">
-                <Button
-                  className="relative w-full h-full rounded-full shadow-lg bg-primary/80 backdrop-blur-sm text-primary-foreground hover:bg-primary transition-colors duration-300"
-                  aria-label="Open AI Assistant"
-                >
-                  <Bot size={32} className="group-hover:scale-110 transition-transform" />
-                </Button>
-              </div>
-            </div>
           </motion.div>
         )}
       </AnimatePresence>
