@@ -21,12 +21,13 @@ export function ChatbotAssistant() {
   const [isLoading, setIsLoading] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const constraintsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Set initial position to bottom-right corner on mount
+    // This effect runs only on the client
     if (typeof window !== 'undefined') {
       const initialX = window.innerWidth - 100;
       const initialY = window.innerHeight - 100;
@@ -64,13 +65,36 @@ export function ChatbotAssistant() {
       setIsLoading(false);
     }
   };
-
-  const handleOpen = () => setIsOpen(true);
+  
+  const handleOpen = () => {
+      if (!isDragging) {
+        setIsOpen(true);
+      }
+  };
   const handleClose = () => setIsOpen(false);
 
-  const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+  const handleIconDragStart = () => {
+    setIsDragging(true);
+  };
+  
+  const handleIconDragEnd = (
+    _event: MouseEvent | TouchEvent | PointerEvent,
+    info: PanInfo
+  ) => {
+    setPosition({ x: info.point.x, y: info.point.y });
+    // Use a timeout to reset isDragging after the tap gesture is processed
+    setTimeout(() => {
+        setIsDragging(false);
+    }, 0);
+  };
+
+  const handleWindowDragEnd = (
+    _event: MouseEvent | TouchEvent | PointerEvent,
+    info: PanInfo
+  ) => {
     setPosition({ x: info.point.x, y: info.point.y });
   };
+
 
   if (!isInitialized) {
     return null;
@@ -85,12 +109,13 @@ export function ChatbotAssistant() {
             drag
             dragConstraints={constraintsRef}
             dragMomentum={false}
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={{ opacity: 0, scale: 0.9, x: position.x, y: position.y }}
             animate={{ opacity: 1, scale: 1, x: position.x, y: position.y }}
             exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.15 } }}
             transition={{ type: 'spring', stiffness: 260, damping: 25 }}
             className="fixed z-50 pointer-events-auto cursor-grab active:cursor-grabbing"
-            onDragEnd={handleDragEnd}
+            onDragEnd={handleWindowDragEnd}
+            style={{ x: position.x, y: position.y }}
           >
             <Card className="w-80 md:w-96 h-[500px] flex flex-col bg-card/80 backdrop-blur-xl border-white/10 shadow-2xl">
               <CardHeader 
@@ -176,12 +201,14 @@ export function ChatbotAssistant() {
             dragConstraints={constraintsRef}
             dragMomentum={false}
             onTap={handleOpen}
-            onDragEnd={handleDragEnd}
+            onDragStart={handleIconDragStart}
+            onDragEnd={handleIconDragEnd}
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1, x: position.x, y: position.y }}
             exit={{ scale: 0, opacity: 0, transition: { duration: 0.2 } }}
             transition={{ type: 'spring', stiffness: 260, damping: 20 }}
             className="fixed z-50 cursor-grab active:cursor-grabbing pointer-events-auto"
+            style={{ x: position.x, y: position.y }}
           >
             <Button
               className="w-16 h-16 rounded-full shadow-lg bg-primary/80 backdrop-blur-sm text-primary-foreground hover:bg-primary transition-colors duration-300 pointer-events-none"
