@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { chat } from '@/ai/flows/chat-flow';
-import { AnimatePresence, motion, PanInfo, useDragControls } from 'framer-motion';
+import { AnimatePresence, motion, PanInfo } from 'framer-motion';
 
 type Message = {
   text: string;
@@ -21,17 +21,14 @@ export function ChatbotAssistant() {
   const [isLoading, setIsLoading] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isInitialized, setIsInitialized] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  
+  const [wasDragged, setWasDragged] = useState(false);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const constraintsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // This effect runs only on the client
     if (typeof window !== 'undefined') {
-      const initialX = window.innerWidth - 100;
-      const initialY = window.innerHeight - 100;
-      setPosition({ x: initialX, y: initialY });
+      setPosition({ x: window.innerWidth - 100, y: window.innerHeight - 120 });
       setIsInitialized(true);
     }
   }, []);
@@ -65,11 +62,19 @@ export function ChatbotAssistant() {
       setIsLoading(false);
     }
   };
-  
+
   const handleTap = () => {
-    if (!isDragging) {
+    if (!wasDragged) {
       setIsOpen(true);
     }
+  };
+  
+  const handleDragStart = () => {
+    setWasDragged(false);
+  };
+  
+  const handleDrag = () => {
+    setWasDragged(true);
   };
 
   const handleClose = () => setIsOpen(false);
@@ -79,10 +84,7 @@ export function ChatbotAssistant() {
     info: PanInfo
   ) => {
     setPosition({ x: info.point.x, y: info.point.y });
-    // Use a timeout to reset isDragging after the tap gesture is processed
-    setTimeout(() => {
-        setIsDragging(false);
-    }, 0);
+    setTimeout(() => setWasDragged(false), 0);
   };
 
   if (!isInitialized) {
@@ -98,13 +100,13 @@ export function ChatbotAssistant() {
             drag
             dragConstraints={constraintsRef}
             dragMomentum={false}
-            initial={{ opacity: 0, scale: 0.9, x: position.x, y: position.y }}
-            animate={{ opacity: 1, scale: 1, x: position.x, y: position.y }}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.15 } }}
             transition={{ type: 'spring', stiffness: 260, damping: 25 }}
             className="fixed z-50 pointer-events-auto cursor-grab active:cursor-grabbing"
+            style={{ x: position.x - 160, y: position.y - 250 }}
             onDragEnd={handleDragEnd}
-            style={{ x: position.x, y: position.y }}
           >
             <Card className="w-80 md:w-96 h-[500px] flex flex-col bg-card/80 backdrop-blur-xl border-white/10 shadow-2xl">
               <CardHeader 
@@ -189,28 +191,35 @@ export function ChatbotAssistant() {
             drag
             dragConstraints={constraintsRef}
             dragMomentum={false}
-            onDragStart={() => setIsDragging(true)}
+            onDragStart={handleDragStart}
+            onDrag={handleDrag}
             onDragEnd={handleDragEnd}
             onTap={handleTap}
             initial={{ scale: 0, opacity: 0 }}
-            animate={{ 
-              scale: 1, 
-              opacity: 1, 
-              x: position.x, 
-              y: [position.y, position.y - 5, position.y]
+            animate={{
+              scale: 1,
+              opacity: 1,
+              y: [null, -10, 0],
+              rotate: [0, 2, -2, 0],
             }}
             exit={{ scale: 0, opacity: 0, transition: { duration: 0.2 } }}
             transition={{
               scale: { type: 'spring', stiffness: 260, damping: 20 },
               opacity: { duration: 0.2 },
               y: {
-                duration: 2,
+                duration: 2.5,
                 repeat: Infinity,
-                repeatType: 'reverse',
+                repeatType: 'mirror',
+                ease: 'easeInOut',
+              },
+              rotate: {
+                duration: 5,
+                repeat: Infinity,
+                repeatType: 'mirror',
                 ease: 'easeInOut',
               },
             }}
-            className="fixed z-50 cursor-grab active:cursor-grabbing pointer-events-auto"
+            className="fixed z-50 cursor-grab active:cursor-grabbing pointer-events-auto drop-shadow-lg"
             style={{ x: position.x, y: position.y }}
           >
             <Button
