@@ -1,13 +1,13 @@
 
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Bot, Send, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { chat } from '@/ai/flows/chat-flow';
-import { AnimatePresence, motion, PanInfo } from 'framer-motion';
+import { AnimatePresence, motion, useDragControls, PanInfo } from 'framer-motion';
 
 type Message = {
   text: string;
@@ -25,10 +25,14 @@ export function ChatbotAssistant() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const constraintsRef = useRef<HTMLDivElement>(null);
+  const dragControls = useDragControls();
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      setPosition({ x: window.innerWidth - 100, y: window.innerHeight - 120 });
+      setPosition({ 
+        x: window.innerWidth - 100, 
+        y: window.innerHeight - 120 
+      });
       setIsInitialized(true);
     }
   }, []);
@@ -62,31 +66,30 @@ export function ChatbotAssistant() {
       setIsLoading(false);
     }
   };
-
+  
   const handleTap = () => {
     if (!wasDragged) {
       setIsOpen(true);
     }
+    // Reset wasDragged after tap logic
+    setTimeout(() => setWasDragged(false), 0);
   };
   
   const handleDragStart = () => {
-    setWasDragged(false);
-  };
-  
-  const handleDrag = () => {
     setWasDragged(true);
   };
-
-  const handleClose = () => setIsOpen(false);
+  
+  const handleClose = () => {
+    setIsOpen(false)
+  };
 
   const handleDragEnd = (
     _event: MouseEvent | TouchEvent | PointerEvent,
     info: PanInfo
   ) => {
     setPosition({ x: info.point.x, y: info.point.y });
-    setTimeout(() => setWasDragged(false), 0);
   };
-
+  
   if (!isInitialized) {
     return null;
   }
@@ -98,18 +101,20 @@ export function ChatbotAssistant() {
           <motion.div
             key="chat-window"
             drag
+            dragControls={dragControls}
+            dragListener={false}
             dragConstraints={constraintsRef}
             dragMomentum={false}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0, scale: 0.9, x: position.x - 160, y: position.y - 250 }}
+            animate={{ opacity: 1, scale: 1, x: position.x - 160, y: position.y - 250 }}
             exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.15 } }}
             transition={{ type: 'spring', stiffness: 260, damping: 25 }}
             className="fixed z-50 pointer-events-auto cursor-grab active:cursor-grabbing"
-            style={{ x: position.x - 160, y: position.y - 250 }}
             onDragEnd={handleDragEnd}
           >
             <Card className="w-80 md:w-96 h-[500px] flex flex-col bg-card/80 backdrop-blur-xl border-white/10 shadow-2xl">
               <CardHeader 
+                onPointerDown={(e) => dragControls.start(e)}
                 className="flex flex-row items-center justify-between p-3 border-b border-white/10"
               >
                 <CardTitle className="text-lg font-semibold flex items-center gap-2">
@@ -192,42 +197,55 @@ export function ChatbotAssistant() {
             dragConstraints={constraintsRef}
             dragMomentum={false}
             onDragStart={handleDragStart}
-            onDrag={handleDrag}
-            onDragEnd={handleDragEnd}
+            onDragEnd={(event, info) => {
+              handleDragEnd(event, info);
+              // Important: Reset wasDragged only after a drag ends
+              setTimeout(() => setWasDragged(false), 0);
+            }}
             onTap={handleTap}
             initial={{ scale: 0, opacity: 0 }}
             animate={{
               scale: 1,
               opacity: 1,
-              y: [null, -10, 0],
-              rotate: [0, 2, -2, 0],
+              y: [0, -10, 0],
             }}
             exit={{ scale: 0, opacity: 0, transition: { duration: 0.2 } }}
             transition={{
-              scale: { type: 'spring', stiffness: 260, damping: 20 },
-              opacity: { duration: 0.2 },
-              y: {
-                duration: 2.5,
-                repeat: Infinity,
-                repeatType: 'mirror',
-                ease: 'easeInOut',
-              },
-              rotate: {
-                duration: 5,
-                repeat: Infinity,
-                repeatType: 'mirror',
-                ease: 'easeInOut',
-              },
-            }}
-            className="fixed z-50 cursor-grab active:cursor-grabbing pointer-events-auto drop-shadow-lg"
+                scale: { type: 'spring', stiffness: 260, damping: 20 },
+                opacity: { duration: 0.2 },
+                y: {
+                  duration: 2.5,
+                  repeat: Infinity,
+                  repeatType: 'mirror',
+                  ease: 'easeInOut',
+                },
+              }}
+            className="fixed z-50 cursor-grab active:cursor-grabbing pointer-events-auto"
             style={{ x: position.x, y: position.y }}
           >
-            <Button
-              className="w-16 h-16 rounded-full shadow-lg bg-primary/80 backdrop-blur-sm text-primary-foreground hover:bg-primary transition-colors duration-300 pointer-events-none"
-              aria-label="Open AI Assistant"
+            <motion.div
+              animate={{
+                scale: [1, 1.05, 1],
+                filter: [
+                    'drop-shadow(0 0 4px hsl(var(--primary)))',
+                    'drop-shadow(0 0 8px hsl(var(--primary)))',
+                    'drop-shadow(0 0 4px hsl(var(--primary)))',
+                ]
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                repeatType: 'mirror',
+                ease: 'easeInOut',
+              }}
             >
-              <Bot size={32} />
-            </Button>
+              <Button
+                className="w-16 h-16 rounded-full shadow-lg bg-primary/80 backdrop-blur-sm text-primary-foreground hover:bg-primary transition-colors duration-300 pointer-events-none"
+                aria-label="Open AI Assistant"
+              >
+                <Bot size={32} />
+              </Button>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
