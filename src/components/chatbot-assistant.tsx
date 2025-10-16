@@ -1,13 +1,18 @@
 
-"use client";
+'use client';
 
-import { useState, useRef, useEffect, useCallback } from "react";
-import { Bot, Send, X, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { chat } from "@/ai/flows/chat-flow";
-import { AnimatePresence, motion } from "framer-motion";
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { Bot, Send, X, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { chat } from '@/ai/flows/chat-flow';
+import {
+  AnimatePresence,
+  motion,
+  useDragControls,
+  type PanInfo,
+} from 'framer-motion';
 
 type Message = {
   text: string;
@@ -17,34 +22,35 @@ type Message = {
 export function ChatbotAssistant() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [inputValue, setInputValue] = useState("");
+  const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  
-  const [position, setPosition] = useState<{ x: number, y: number } | null>(null);
+
+  // Position is stored in a ref to persist between renders without causing re-renders on change.
+  const position = useRef({ x: 0, y: 0 });
 
   const constraintsRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  
+
+  // Set initial position only once on the client.
   useEffect(() => {
-    // Set initial position on the client-side to avoid SSR issues with window
-    setPosition({
-        x: window.innerWidth - 80,
-        y: window.innerHeight - 80,
-    });
+    position.current = {
+      x: window.innerWidth - 80,
+      y: window.innerHeight - 80,
+    };
   }, []);
-  
+
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(scrollToBottom, [messages]);
 
   const handleSendMessage = async () => {
-    if (inputValue.trim() === "" || isLoading) return;
+    if (inputValue.trim() === '' || isLoading) return;
 
     const userMessage: Message = { text: inputValue, isUser: true };
     setMessages((prev) => [...prev, userMessage]);
-    setInputValue("");
+    setInputValue('');
     setIsLoading(true);
 
     try {
@@ -57,68 +63,86 @@ export function ChatbotAssistant() {
         isUser: false,
       };
       setMessages((prev) => [...prev, errorMessage]);
-      console.error("Chatbot error:", error);
+      console.error('Chatbot error:', error);
     } finally {
       setIsLoading(false);
     }
   };
-  
+
   const handleOpen = () => setIsOpen(true);
   const handleClose = () => setIsOpen(false);
 
+  const onDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    // Update the ref with the new position after dragging.
+    position.current = info.point;
+  };
+
   return (
     <>
-      <div ref={constraintsRef} className="fixed inset-0 pointer-events-none z-40" />
-      
+      <div
+        ref={constraintsRef}
+        className="fixed inset-0 pointer-events-none z-40"
+      />
+
       <AnimatePresence>
-        {!isOpen && position && (
+        {!isOpen ? (
           <motion.div
             key="chat-icon"
             drag
             dragConstraints={constraintsRef}
             dragMomentum={false}
-            onDragEnd={(event, info) => {
-              setPosition({ x: info.point.x, y: info.point.y });
-            }}
+            onDragEnd={onDragEnd}
             onTap={handleOpen}
             className="fixed z-50 cursor-grab active:cursor-grabbing"
-            initial={{ x: position.x, y: position.y, scale: 0, opacity: 0 }}
+            initial={{
+              x: typeof window !== 'undefined' ? window.innerWidth - 80 : 0,
+              y: typeof window !== 'undefined' ? window.innerHeight - 80 : 0,
+              scale: 0,
+              opacity: 0,
+            }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0, transition: { duration: 0.2 } }}
-            transition={{ type: "spring", stiffness: 260, damping: 20 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 20 }}
           >
             <Button
               className="w-16 h-16 rounded-full shadow-lg bg-primary/80 backdrop-blur-sm text-primary-foreground hover:bg-primary transition-colors duration-300"
               aria-label="Open AI Assistant"
             >
-              <Bot size={32} className="group-hover:scale-110 transition-transform" />
+              <Bot
+                size={32}
+                className="group-hover:scale-110 transition-transform"
+              />
             </Button>
           </motion.div>
-        )}
-      </AnimatePresence>
-      
-      <AnimatePresence>
-        {isOpen && position && (
+        ) : (
           <motion.div
             key="chat-window"
             drag
             dragConstraints={constraintsRef}
             dragMomentum={false}
-            onDragEnd={(event, info) => {
-              setPosition({ x: info.point.x, y: info.point.y });
-            }}
+            onDragEnd={onDragEnd}
             className="fixed z-50 cursor-grab active:cursor-grabbing"
-            initial={{ x: position.x, y: position.y, opacity: 0, scale: 0.9 }}
+            initial={{
+              x: position.current.x,
+              y: position.current.y,
+              opacity: 0,
+              scale: 0.9,
+            }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.15 } }}
-            transition={{ type: "spring", stiffness: 260, damping: 25 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 25 }}
           >
             <Card className="w-80 md:w-96 h-[500px] flex flex-col bg-card/80 backdrop-blur-xl border-white/10 shadow-2xl">
               <CardHeader className="flex flex-row items-center justify-between p-3 border-b border-white/10">
                 <CardTitle className="text-lg font-semibold flex items-center gap-2">
                   <Bot size={20} className="text-primary" /> AI Assistant
                 </CardTitle>
-                <Button variant="ghost" size="icon" className="h-8 w-8 cursor-pointer" onClick={handleClose}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 cursor-pointer"
+                  onClick={handleClose}
+                >
                   <X className="h-4 w-4" />
                 </Button>
               </CardHeader>
@@ -127,7 +151,7 @@ export function ChatbotAssistant() {
                   <div
                     key={index}
                     className={`flex items-start gap-2.5 ${
-                      msg.isUser ? "justify-end" : ""
+                      msg.isUser ? 'justify-end' : ''
                     }`}
                   >
                     {!msg.isUser && (
@@ -138,8 +162,8 @@ export function ChatbotAssistant() {
                     <div
                       className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
                         msg.isUser
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-secondary"
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-secondary'
                       }`}
                     >
                       {msg.text}
@@ -165,7 +189,7 @@ export function ChatbotAssistant() {
                     placeholder="Ask me anything..."
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
                     disabled={isLoading}
                     className="pr-10 bg-secondary border-0"
                   />
@@ -175,7 +199,7 @@ export function ChatbotAssistant() {
                     variant="ghost"
                     className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
                     onClick={handleSendMessage}
-                    disabled={isLoading || inputValue.trim() === ""}
+                    disabled={isLoading || inputValue.trim() === ''}
                   >
                     <Send className="h-4 w-4" />
                   </Button>
