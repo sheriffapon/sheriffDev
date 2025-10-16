@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { chat } from '@/ai/flows/chat-flow';
-import { AnimatePresence, motion, useDragControls, PanInfo } from 'framer-motion';
+import { AnimatePresence, motion, type PanInfo } from 'framer-motion';
 
 type Message = {
   text: string;
@@ -25,23 +25,25 @@ export function ChatbotAssistant() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const constraintsRef = useRef<HTMLDivElement>(null);
-  const dragControls = useDragControls();
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setPosition({ 
-        x: window.innerWidth - 100, 
-        y: window.innerHeight - 120 
-      });
-      setIsInitialized(true);
-    }
+    // Run only on the client
+    setPosition({
+      x: window.innerWidth - 100,
+      y: window.innerHeight - 120,
+    });
+    setIsInitialized(true);
   }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  useEffect(scrollToBottom, [messages]);
+  useEffect(() => {
+    if (isOpen) {
+      scrollToBottom();
+    }
+  }, [messages, isOpen]);
 
   const handleSendMessage = async () => {
     if (inputValue.trim() === '' || isLoading) return;
@@ -66,32 +68,37 @@ export function ChatbotAssistant() {
       setIsLoading(false);
     }
   };
-  
-  const handleTap = () => {
-    if (!wasDragged) {
-      setIsOpen(true);
-    }
-    // Reset wasDragged after tap logic
-    setTimeout(() => setWasDragged(false), 0);
-  };
-  
+
   const handleDragStart = () => {
     setWasDragged(true);
-  };
-  
-  const handleClose = () => {
-    setIsOpen(false)
   };
 
   const handleDragEnd = (
     _event: MouseEvent | TouchEvent | PointerEvent,
     info: PanInfo
   ) => {
-    setPosition({ x: info.point.x, y: info.point.y });
+    // A tiny delay to separate drag end from tap
+    setTimeout(() => {
+      setPosition({ x: info.point.x, y: info.point.y });
+    }, 50);
   };
   
+  const handleTap = () => {
+    if (!wasDragged) {
+      setIsOpen(true);
+    }
+    // Reset drag status after a short delay
+    setTimeout(() => {
+      setWasDragged(false);
+    }, 50);
+  };
+
+  const handleClose = () => {
+    setIsOpen(false);
+  };
+
   if (!isInitialized) {
-    return null;
+    return null; // Render nothing on the server or before initialization
   }
 
   return (
@@ -101,22 +108,22 @@ export function ChatbotAssistant() {
           <motion.div
             key="chat-window"
             drag
-            dragControls={dragControls}
-            dragListener={false}
             dragConstraints={constraintsRef}
             dragMomentum={false}
-            initial={{ opacity: 0, scale: 0.9, x: position.x - 160, y: position.y - 250 }}
-            animate={{ opacity: 1, scale: 1, x: position.x - 160, y: position.y - 250 }}
+            onDragEnd={handleDragEnd}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ 
+                opacity: 1, 
+                scale: 1,
+                x: position.x - 180, // Center the window on the icon position
+                y: position.y - 300, 
+            }}
             exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.15 } }}
             transition={{ type: 'spring', stiffness: 260, damping: 25 }}
             className="fixed z-50 pointer-events-auto cursor-grab active:cursor-grabbing"
-            onDragEnd={handleDragEnd}
           >
             <Card className="w-80 md:w-96 h-[500px] flex flex-col bg-card/80 backdrop-blur-xl border-white/10 shadow-2xl">
-              <CardHeader 
-                onPointerDown={(e) => dragControls.start(e)}
-                className="flex flex-row items-center justify-between p-3 border-b border-white/10"
-              >
+              <CardHeader className="flex flex-row items-center justify-between p-3 border-b border-white/10 cursor-move">
                 <CardTitle className="text-lg font-semibold flex items-center gap-2">
                   <Bot size={20} className="text-primary" /> AI Assistant
                 </CardTitle>
@@ -131,8 +138,11 @@ export function ChatbotAssistant() {
               </CardHeader>
               <CardContent className="flex-grow overflow-y-auto p-4 space-y-4">
                 {messages.map((msg, index) => (
-                  <div
+                  <motion.div
                     key={index}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.1 }}
                     className={`flex items-start gap-2.5 ${
                       msg.isUser ? 'justify-end' : ''
                     }`}
@@ -151,7 +161,7 @@ export function ChatbotAssistant() {
                     >
                       {msg.text}
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
                 {isLoading && (
                   <div className="flex items-start gap-2.5">
@@ -197,43 +207,35 @@ export function ChatbotAssistant() {
             dragConstraints={constraintsRef}
             dragMomentum={false}
             onDragStart={handleDragStart}
-            onDragEnd={(event, info) => {
-              handleDragEnd(event, info);
-              // Important: Reset wasDragged only after a drag ends
-              setTimeout(() => setWasDragged(false), 0);
-            }}
+            onDragEnd={handleDragEnd}
             onTap={handleTap}
             initial={{ scale: 0, opacity: 0 }}
             animate={{
               scale: 1,
               opacity: 1,
-              y: [0, -10, 0],
+              x: position.x,
+              y: position.y,
             }}
             exit={{ scale: 0, opacity: 0, transition: { duration: 0.2 } }}
             transition={{
-                scale: { type: 'spring', stiffness: 260, damping: 20 },
-                opacity: { duration: 0.2 },
-                y: {
-                  duration: 2.5,
-                  repeat: Infinity,
-                  repeatType: 'mirror',
-                  ease: 'easeInOut',
-                },
-              }}
+              type: 'spring',
+              stiffness: 260,
+              damping: 20,
+            }}
             className="fixed z-50 cursor-grab active:cursor-grabbing pointer-events-auto"
-            style={{ x: position.x, y: position.y }}
           >
             <motion.div
               animate={{
+                y: [0, -8, 0],
                 scale: [1, 1.05, 1],
                 filter: [
-                    'drop-shadow(0 0 4px hsl(var(--primary)))',
-                    'drop-shadow(0 0 8px hsl(var(--primary)))',
-                    'drop-shadow(0 0 4px hsl(var(--primary)))',
+                  'drop-shadow(0 0 4px hsl(var(--primary)))',
+                  'drop-shadow(0 0 10px hsl(var(--primary)))',
+                  'drop-shadow(0 0 4px hsl(var(--primary)))',
                 ]
               }}
               transition={{
-                duration: 2,
+                duration: 2.5,
                 repeat: Infinity,
                 repeatType: 'mirror',
                 ease: 'easeInOut',
