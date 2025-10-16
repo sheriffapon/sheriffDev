@@ -48,11 +48,11 @@ export function ProjectsSection() {
     <section id="projects">
       <div className="container">
         <SectionTitle>My Projects</SectionTitle>
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {projects.map((project) => {
             const projectImage = PlaceHolderImages.find(p => p.id === project.id);
             return (
-              <Card key={project.id} className="flex flex-col overflow-hidden group bg-card/60 backdrop-blur-xl border-white/10">
+              <Card key={project.id} className="flex flex-col overflow-hidden group bg-card/60 backdrop-blur-xl border-white/10 text-xs">
                 {projectImage && (
                   <div className="aspect-video overflow-hidden">
                     <Image
@@ -65,26 +65,26 @@ export function ProjectsSection() {
                     />
                   </div>
                 )}
-                <CardHeader className="p-4">
-                  <CardTitle className="font-headline text-xl">{project.title}</CardTitle>
+                <CardHeader className="p-3">
+                  <CardTitle className="font-headline text-lg">{project.title}</CardTitle>
                 </CardHeader>
-                <CardContent className="p-4 pt-0 flex-grow flex flex-col">
-                  <p className="text-muted-foreground text-sm flex-grow">{project.description}</p>
-                  <div className="flex flex-wrap gap-1.5 my-3">
+                <CardContent className="p-3 pt-0 flex-grow flex flex-col">
+                  <p className="text-muted-foreground flex-grow mb-2">{project.description}</p>
+                  <div className="flex flex-wrap gap-1 my-2">
                     {project.techStack.map((tech) => (
-                      <Badge key={tech} variant="secondary">{tech}</Badge>
+                      <Badge key={tech} variant="secondary" className="text-xs">{tech}</Badge>
                     ))}
                   </div>
-                  <div className="flex items-center gap-3 mt-auto">
+                  <div className="flex items-center gap-2 mt-auto">
                     <Button variant="outline" size="sm" asChild>
                       <Link href={project.githubUrl} target="_blank" rel="noopener noreferrer">
-                        <Github className="mr-2 h-4 w-4" />
+                        <Github className="mr-1.5 h-3.5 w-3.5" />
                         GitHub
                       </Link>
                     </Button>
                     <Button variant="outline" size="sm" asChild>
                       <Link href={project.liveUrl} target="_blank" rel="noopener noreferrer">
-                        <ExternalLink className="mr-2 h-4 w-4" />
+                        <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
                         Live Demo
                       </Link>
                     </Button>
