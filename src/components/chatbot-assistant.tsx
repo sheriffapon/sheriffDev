@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useRef, useEffect, type PointerEvent } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Bot, Send, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,17 +19,19 @@ export function ChatbotAssistant() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
+  
+  // State for position, initialized to null
+  const [position, setPosition] = useState<{ x: number, y: number } | null>(null);
 
   const constraintsRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const dragControls = useDragControls();
 
-  // Correctly set initial position only on the client-side after mount
+  // Set initial position only on the client-side after mount
   useEffect(() => {
     setPosition({
-      x: window.innerWidth - 80,
-      y: window.innerHeight - 80,
+      x: window.innerWidth - 100, // Position from right edge
+      y: window.innerHeight - 100, // Position from bottom edge
     });
   }, []);
 
@@ -63,100 +65,73 @@ export function ChatbotAssistant() {
     }
   };
 
-  const handleOpen = (e: PointerEvent) => {
-    // This check ensures a "tap" and not the end of a "drag" opens the chat
-    const target = e.target as HTMLElement;
-    if (target.getAttribute('data-drag-released') === 'true') {
-      target.removeAttribute('data-drag-released');
-      return;
-    }
+  const handleOpen = () => {
     setIsOpen(true);
   };
   
-  const handleClose = () => setIsOpen(false);
+  const handleClose = () => {
+    // When closing, update the icon's position to where the chat window was
+    const chatWindow = document.querySelector('[data-chat-window="true"]') as HTMLElement;
+    if (chatWindow) {
+      const { x, y } = chatWindow.getBoundingClientRect();
+      setPosition({ x, y });
+    }
+    setIsOpen(false);
+  };
 
-  // Don't render anything on the server or until the position is calculated.
+  // Do not render anything on the server or until the initial position is calculated on the client.
   if (!position) {
     return null;
   }
 
   return (
-    <>
-      <div
-        ref={constraintsRef}
-        className="fixed inset-0 pointer-events-none z-40"
-      />
+    <div ref={constraintsRef} className="fixed inset-0 pointer-events-none z-40">
       <AnimatePresence>
         {!isOpen ? (
           <motion.div
             key="chat-icon"
             drag
             dragControls={dragControls}
-            dragListener={false} // We trigger drag manually
+            dragConstraints={constraintsRef}
+            dragMomentum={false}
             onPointerDown={(e) => dragControls.start(e)}
+            onTap={handleOpen}
             onDragEnd={(_event, info) => {
               setPosition({ x: info.point.x, y: info.point.y });
             }}
-            onTap={handleOpen}
-            onTapStart={(e) => {
-              (e.target as HTMLElement).setAttribute('data-drag-released', 'false');
-            }}
-            onDrag={(e) => {
-              (e.target as HTMLElement).setAttribute('data-drag-released', 'true');
-            }}
-            className="fixed z-50 cursor-grab active:cursor-grabbing"
-            initial={{
-              x: position.x,
-              y: position.y,
-              scale: 0,
-              opacity: 0,
-            }}
-            animate={{ scale: 1, opacity: 1 }}
+            initial={{ scale: 0, opacity: 0, x: position.x, y: position.y }}
+            animate={{ scale: 1, opacity: 1, x: position.x, y: position.y }}
             exit={{ scale: 0, opacity: 0, transition: { duration: 0.2 } }}
             transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-            style={{ x: position.x, y: position.y }}
+            className="fixed z-50 cursor-grab active:cursor-grabbing pointer-events-auto"
+            style={{
+              // We manage position through animate props, not direct style to avoid conflicts
+            }}
           >
             <Button
               className="w-16 h-16 rounded-full shadow-lg bg-primary/80 backdrop-blur-sm text-primary-foreground hover:bg-primary transition-colors duration-300 pointer-events-none"
               aria-label="Open AI Assistant"
             >
-              <Bot
-                size={32}
-                className="group-hover:scale-110 transition-transform"
-              />
+              <Bot size={32} />
             </Button>
           </motion.div>
         ) : (
           <motion.div
             key="chat-window"
+            data-chat-window="true"
             drag
             dragControls={dragControls}
-            dragListener={false} // We trigger drag manually
-            onPointerDown={(e) => {
-                const target = e.target as HTMLElement;
-                // Only allow dragging from the header
-                if (target.closest('[data-drag-handle="true"]')) {
-                    dragControls.start(e);
-                }
-            }}
-            onDragEnd={(_event, info) => {
-              setPosition({ x: info.point.x, y: info.point.y });
-            }}
-            className="fixed z-50 cursor-grab active:cursor-grabbing"
-            initial={{
-              x: position.x,
-              y: position.y,
-              opacity: 0,
-              scale: 0.9,
-            }}
-            animate={{ opacity: 1, scale: 1 }}
+            dragConstraints={constraintsRef}
+            dragMomentum={false}
+            onPointerDown={(e) => dragControls.start(e)}
+            initial={{ opacity: 0, scale: 0.9, x: position.x, y: position.y }}
+            animate={{ opacity: 1, scale: 1, x: position.x, y: position.y }}
             exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.15 } }}
             transition={{ type: 'spring', stiffness: 260, damping: 25 }}
-            style={{ x: position.x, y: position.y }}
+            className="fixed z-50 cursor-grab active:cursor-grabbing pointer-events-auto"
           >
             <Card className="w-80 md:w-96 h-[500px] flex flex-col bg-card/80 backdrop-blur-xl border-white/10 shadow-2xl">
               <CardHeader 
-                data-drag-handle="true"
                 className="flex flex-row items-center justify-between p-3 border-b border-white/10 cursor-grab active:cursor-grabbing"
               >
                 <CardTitle className="text-lg font-semibold flex items-center gap-2 pointer-events-none">
@@ -234,6 +209,8 @@ export function ChatbotAssistant() {
           </motion.div>
         )}
       </AnimatePresence>
-    </>
+    </div>
   );
 }
+
+    
