@@ -28,8 +28,10 @@ export function ChatbotAssistant() {
   const y = useMotionValue(0);
 
   useEffect(() => {
-    const initialX = window.innerWidth - 120;
-    const initialY = window.innerHeight - 120;
+    // Position the icon in the bottom-right corner initially.
+    // We subtract the size of the icon and some padding.
+    const initialX = window.innerWidth - 80;
+    const initialY = window.innerHeight - 80;
     x.set(initialX);
     y.set(initialY);
   }, [x, y]);
@@ -68,6 +70,10 @@ export function ChatbotAssistant() {
     if (!dragDidMove.current) {
         setIsOpen(true);
     }
+    // Reset drag flag
+    setTimeout(() => {
+        dragDidMove.current = false;
+    }, 50);
   };
   
   const handleClose = () => {
@@ -84,7 +90,11 @@ export function ChatbotAssistant() {
             drag
             dragConstraints={constraintsRef}
             dragMomentum={false}
-            className="fixed top-0 left-0 z-50 cursor-grab active:cursor-grabbing"
+            onDragEnd={(_, info) => {
+              x.set(info.point.x);
+              y.set(info.point.y);
+            }}
+            className="fixed z-50 cursor-grab active:cursor-grabbing"
             style={{ x, y }}
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -169,16 +179,15 @@ export function ChatbotAssistant() {
             drag
             dragConstraints={constraintsRef}
             dragMomentum={false}
-            onTap={handleOpen}
             onDragStart={() => {
                 dragDidMove.current = true;
             }}
-            onDragEnd={() => {
-                setTimeout(() => {
-                    dragDidMove.current = false;
-                }, 100);
+            onDragEnd={(_, info) => {
+              x.set(info.point.x);
+              y.set(info.point.y);
             }}
-            className="fixed top-0 left-0 z-50"
+            onTap={handleOpen}
+            className="fixed z-50"
             style={{ x, y }}
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
