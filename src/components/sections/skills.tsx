@@ -34,14 +34,14 @@ export function SkillsSection() {
     <section id="skills" className="bg-secondary">
       <div className="container">
         <SectionTitle>Core Technologies</SectionTitle>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 max-w-5xl mx-auto">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 max-w-4xl mx-auto">
           {skills.map((skill) => (
-            <Card key={skill.name} className="group flex flex-col items-center justify-center p-6 transition-all duration-300 hover:bg-card-foreground/5 hover:shadow-lg hover:-translate-y-2">
-              <CardContent className="p-0 flex flex-col items-center gap-4">
-                <div className="h-12 w-12 text-muted-foreground transition-colors group-hover:text-primary">
+            <Card key={skill.name} className="group flex flex-col items-center justify-center p-4 transition-all duration-300 hover:bg-card-foreground/5 hover:shadow-lg hover:-translate-y-1">
+              <CardContent className="p-0 flex flex-col items-center gap-3">
+                <div className="h-10 w-10 text-muted-foreground transition-colors group-hover:text-primary">
                   {skill.icon}
                 </div>
-                <p className="font-semibold text-sm text-center">{skill.name}</p>
+                <p className="font-semibold text-xs text-center">{skill.name}</p>
               </CardContent>
             </Card>
           ))}

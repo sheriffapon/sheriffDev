@@ -95,7 +95,7 @@ export function ReviewForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="authorName"
@@ -118,7 +118,7 @@ export function ReviewForm() {
               <FormControl>
                 <Textarea
                   placeholder="What did you think of my portfolio?"
-                  className="min-h-[100px]"
+                  className="min-h-[80px]"
                   {...field}
                 />
               </FormControl>
@@ -136,13 +136,14 @@ export function ReviewForm() {
                     <StarRating
                     rating={field.value}
                     onRatingChange={field.onChange}
+                    starSize={20}
                     />
                 </FormControl>
                 <FormMessage>{fieldState.error?.message}</FormMessage>
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full" size="lg" disabled={isButtonDisabled}>
+        <Button type="submit" className="w-full" size="default" disabled={isButtonDisabled}>
           {isSubmitting ? 'Submitting...' : isUserLoading ? 'Initializing...' : <>Submit Review <Send className="ml-2 h-4 w-4" /></>}
         </Button>
       </form>

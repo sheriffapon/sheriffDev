@@ -61,7 +61,7 @@ export function ContactForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="name"
@@ -97,7 +97,7 @@ export function ContactForm() {
               <FormControl>
                 <Textarea
                   placeholder="Tell me about your project or just say hi!"
-                  className="min-h-[120px]"
+                  className="min-h-[100px]"
                   {...field}
                 />
               </FormControl>
@@ -105,7 +105,7 @@ export function ContactForm() {
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
+        <Button type="submit" className="w-full" size="default" disabled={isSubmitting}>
           {isSubmitting ? "Sending..." : <>Send Message <Send className="ml-2 h-4 w-4" /></>}
         </Button>
       </form>

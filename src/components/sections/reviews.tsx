@@ -87,7 +87,7 @@ function EditReviewForm({ review, onFormSubmit }: { review: any, onFormSubmit: (
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="comment"
@@ -211,20 +211,20 @@ export function ReviewsSection() {
     <section id="reviews" className="bg-background/30">
       <div className="container">
         <SectionTitle>Testimonials</SectionTitle>
-        <div className="max-w-6xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-12 items-start">
-            <div className="space-y-6">
-              <h3 className="text-2xl font-headline font-semibold text-center lg:text-left">What people are saying</h3>
+        <div className="max-w-5xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-8 items-start">
+            <div className="space-y-4">
+              <h3 className="text-xl font-headline font-semibold text-center lg:text-left">What people are saying</h3>
               {isLoading && (
                 <div className="space-y-4">
                   {[...Array(3)].map((_, i) => (
-                    <Card key={i} className="bg-card/60 backdrop-blur-xl border-white/10 p-6">
+                    <Card key={i} className="bg-card/60 backdrop-blur-xl border-white/10 p-4">
                       <div className="flex items-center mb-2">
-                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-4 w-20" />
                       </div>
-                      <Skeleton className="h-5 w-32 mb-4" />
-                      <Skeleton className="h-4 w-full" />
-                      <Skeleton className="h-4 w-3/4 mt-2" />
+                      <Skeleton className="h-5 w-28 mb-3" />
+                      <Skeleton className="h-3 w-full" />
+                      <Skeleton className="h-3 w-3/4 mt-1.5" />
                     </Card>
                   ))}
                 </div>
@@ -237,21 +237,21 @@ export function ReviewsSection() {
                     const userHasDisliked = user && review.dislikedBy?.includes(user.uid);
 
                     return (
-                      <Card key={review.id} className="relative group bg-card/60 backdrop-blur-xl border-white/10 p-6">
+                      <Card key={review.id} className="relative group bg-card/60 backdrop-blur-xl border-white/10 p-4">
                         <div className="flex items-center justify-between mb-2">
-                          <p className="font-semibold text-foreground">{review.authorName}</p>
-                          <StarRating rating={review.rating} readOnly />
+                          <p className="font-semibold text-sm text-foreground">{review.authorName}</p>
+                          <StarRating rating={review.rating} readOnly starSize={16} />
                         </div>
-                        <p className="text-muted-foreground flex-grow">{review.comment}</p>
+                        <p className="text-muted-foreground text-sm flex-grow">{review.comment}</p>
                         
-                        <div className="flex items-center justify-between mt-4">
-                          <div className="flex items-center gap-2">
-                              <Button variant="ghost" size="icon" className="h-8 w-8 flex items-center gap-1" onClick={() => handleVote(review.id, 'like')}>
-                                  <ThumbsUp className={cn("h-4 w-4", userHasLiked ? "text-blue-500 fill-blue-500" : "")} />
+                        <div className="flex items-center justify-between mt-3">
+                          <div className="flex items-center gap-1">
+                              <Button variant="ghost" size="icon" className="h-7 w-7 flex items-center gap-1" onClick={() => handleVote(review.id, 'like')}>
+                                  <ThumbsUp className={cn("h-3.5 w-3.5", userHasLiked ? "text-blue-500 fill-blue-500" : "")} />
                                   <span className="text-xs">{review.likedBy?.length || 0}</span>
                               </Button>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 flex items-center gap-1" onClick={() => handleVote(review.id, 'dislike')}>
-                                  <ThumbsDown className={cn("h-4 w-4", userHasDisliked ? "text-red-500 fill-red-500" : "")} />
+                              <Button variant="ghost" size="icon" className="h-7 w-7 flex items-center gap-1" onClick={() => handleVote(review.id, 'dislike')}>
+                                  <ThumbsDown className={cn("h-3.5 w-3.5", userHasDisliked ? "text-red-500 fill-red-500" : "")} />
                                   <span className="text-xs">{review.dislikedBy?.length || 0}</span>
                               </Button>
                           </div>
@@ -263,11 +263,11 @@ export function ReviewsSection() {
                         </div>
 
                         {canModify && (
-                          <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="absolute top-1 right-1 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                             <Dialog open={openDialogs[review.id] || false} onOpenChange={(isOpen) => setOpenDialogs(prev => ({ ...prev, [review.id]: isOpen }))}>
                               <DialogTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                  <Edit className="h-4 w-4" />
+                                <Button variant="ghost" size="icon" className="h-7 w-7">
+                                  <Edit className="h-3.5 w-3.5" />
                                 </Button>
                               </DialogTrigger>
                               <DialogContent>
@@ -280,8 +280,8 @@ export function ReviewsSection() {
 
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                <Button variant="ghost" size="icon" className="h-7 w-7">
+                                  <Trash2 className="h-3.5 w-3.5 text-destructive" />
                                 </Button>
                               </AlertDialogTrigger>
                               <AlertDialogContent>
@@ -310,15 +310,15 @@ export function ReviewsSection() {
                 </div>
               )}
               {!isLoading && reviews?.length === 0 && (
-                <Card className="bg-card/60 backdrop-blur-xl border-white/10 p-6 text-center text-muted-foreground">
+                <Card className="bg-card/60 backdrop-blur-xl border-white/10 p-6 text-center text-sm text-muted-foreground">
                   Be the first to leave a review!
                 </Card>
               )}
             </div>
             <div>
-              <Card className="bg-card/60 backdrop-blur-xl border-white/10 p-6 md:p-8">
+              <Card className="bg-card/60 backdrop-blur-xl border-white/10 p-5 md:p-6">
                 <CardHeader className="p-0 mb-4">
-                  <CardTitle className="text-2xl font-headline font-semibold text-center lg:text-left">Leave a Review</CardTitle>
+                  <CardTitle className="text-xl font-headline font-semibold text-center lg:text-left">Leave a Review</CardTitle>
                 </CardHeader>
                 <ReviewForm />
               </Card>
