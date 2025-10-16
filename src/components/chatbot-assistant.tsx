@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { chat } from '@/ai/flows/chat-flow';
-import { AnimatePresence, motion, useDragControls } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 
 type Message = {
   text: string;
@@ -20,19 +20,21 @@ export function ChatbotAssistant() {
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
-  // State for position, initialized to null
-  const [position, setPosition] = useState<{ x: number, y: number } | null>(null);
+  // Use a ref to store position, which prevents re-renders on update
+  const positionRef = useRef<{ x: number, y: number }>({ x: 0, y: 0 });
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  const constraintsRef = useRef<HTMLDivElement>(null);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const dragControls = useDragControls();
+  const constraintsRef = useRef<HTMLDivElement>(null);
 
   // Set initial position only on the client-side after mount
   useEffect(() => {
-    setPosition({
-      x: window.innerWidth - 100, // Position from right edge
-      y: window.innerHeight - 100, // Position from bottom edge
-    });
+    positionRef.current = {
+      x: window.innerWidth - 100,
+      y: window.innerHeight - 100,
+    };
+    setIsInitialized(true);
   }, []);
 
   const scrollToBottom = () => {
@@ -65,74 +67,36 @@ export function ChatbotAssistant() {
     }
   };
 
-  const handleOpen = () => {
-    setIsOpen(true);
-  };
-  
-  const handleClose = () => {
-    // When closing, update the icon's position to where the chat window was
-    const chatWindow = document.querySelector('[data-chat-window="true"]') as HTMLElement;
-    if (chatWindow) {
-      const { x, y } = chatWindow.getBoundingClientRect();
-      setPosition({ x, y });
-    }
-    setIsOpen(false);
-  };
+  const handleOpen = () => setIsOpen(true);
+  const handleClose = () => setIsOpen(false);
 
-  // Do not render anything on the server or until the initial position is calculated on the client.
-  if (!position) {
+  // Do not render anything until the initial position is calculated on the client.
+  if (!isInitialized) {
     return null;
   }
 
   return (
-    <div ref={constraintsRef} className="fixed inset-0 pointer-events-none z-40">
+    <div ref={constraintsRef} className="fixed inset-0 pointer-events-none z-50">
       <AnimatePresence>
-        {!isOpen ? (
-          <motion.div
-            key="chat-icon"
-            drag
-            dragControls={dragControls}
-            dragConstraints={constraintsRef}
-            dragMomentum={false}
-            onPointerDown={(e) => dragControls.start(e)}
-            onTap={handleOpen}
-            onDragEnd={(_event, info) => {
-              setPosition({ x: info.point.x, y: info.point.y });
-            }}
-            initial={{ scale: 0, opacity: 0, x: position.x, y: position.y }}
-            animate={{ scale: 1, opacity: 1, x: position.x, y: position.y }}
-            exit={{ scale: 0, opacity: 0, transition: { duration: 0.2 } }}
-            transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-            className="fixed z-50 cursor-grab active:cursor-grabbing pointer-events-auto"
-            style={{
-              // We manage position through animate props, not direct style to avoid conflicts
-            }}
-          >
-            <Button
-              className="w-16 h-16 rounded-full shadow-lg bg-primary/80 backdrop-blur-sm text-primary-foreground hover:bg-primary transition-colors duration-300 pointer-events-none"
-              aria-label="Open AI Assistant"
-            >
-              <Bot size={32} />
-            </Button>
-          </motion.div>
-        ) : (
+        {isOpen ? (
           <motion.div
             key="chat-window"
-            data-chat-window="true"
             drag
-            dragControls={dragControls}
             dragConstraints={constraintsRef}
             dragMomentum={false}
-            onPointerDown={(e) => dragControls.start(e)}
-            initial={{ opacity: 0, scale: 0.9, x: position.x, y: position.y }}
-            animate={{ opacity: 1, scale: 1, x: position.x, y: position.y }}
+            dragListener={false} // We will use onPointerDown on the header
+            onDragEnd={(_event, info) => {
+              positionRef.current = { x: info.point.x, y: info.point.y };
+            }}
+            initial={{ opacity: 0, scale: 0.9, x: positionRef.current.x, y: positionRef.current.y }}
+            animate={{ opacity: 1, scale: 1, x: positionRef.current.x, y: positionRef.current.y }}
             exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.15 } }}
             transition={{ type: 'spring', stiffness: 260, damping: 25 }}
-            className="fixed z-50 cursor-grab active:cursor-grabbing pointer-events-auto"
+            className="fixed z-50 pointer-events-auto"
           >
-            <Card className="w-80 md:w-96 h-[500px] flex flex-col bg-card/80 backdrop-blur-xl border-white/10 shadow-2xl">
+            <Card className="w-80 md:w-96 h-[500px] flex flex-col bg-card/80 backdrop-blur-xl border-white/10 shadow-2xl cursor-grab active:cursor-grabbing">
               <CardHeader 
-                className="flex flex-row items-center justify-between p-3 border-b border-white/10 cursor-grab active:cursor-grabbing"
+                className="flex flex-row items-center justify-between p-3 border-b border-white/10"
               >
                 <CardTitle className="text-lg font-semibold flex items-center gap-2 pointer-events-none">
                   <Bot size={20} className="text-primary" /> AI Assistant
@@ -207,10 +171,31 @@ export function ChatbotAssistant() {
               </div>
             </Card>
           </motion.div>
+        ) : (
+          <motion.div
+            key="chat-icon"
+            drag
+            dragConstraints={constraintsRef}
+            dragMomentum={false}
+            onDragEnd={(_event, info) => {
+              positionRef.current = { x: info.point.x, y: info.point.y };
+            }}
+            onTap={handleOpen}
+            initial={{ scale: 0, opacity: 0, x: positionRef.current.x, y: positionRef.current.y }}
+            animate={{ scale: 1, opacity: 1, x: positionRef.current.x, y: positionRef.current.y }}
+            exit={{ scale: 0, opacity: 0, transition: { duration: 0.2 } }}
+            transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+            className="fixed z-50 cursor-grab active:cursor-grabbing pointer-events-auto"
+          >
+            <Button
+              className="w-16 h-16 rounded-full shadow-lg bg-primary/80 backdrop-blur-sm text-primary-foreground hover:bg-primary transition-colors duration-300 pointer-events-none"
+              aria-label="Open AI Assistant"
+            >
+              <Bot size={32} />
+            </Button>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>
   );
 }
-
-    
