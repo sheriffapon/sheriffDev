@@ -22,21 +22,16 @@ export function ChatbotAssistant() {
   
   const constraintsRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const dragDidMove = useRef(false);
-
+  
+  // Shared position for the icon and the chat window
   const x = useMotionValue(0);
   const y = useMotionValue(0);
 
+  // Set initial position on the client-side to avoid SSR issues
   useEffect(() => {
-    // This effect runs only once on the client to set the initial position.
-    // It avoids server-client mismatch for window dimensions.
-    const setInitialPosition = () => {
-      const initialX = window.innerWidth - 80;
-      const initialY = window.innerHeight - 80;
-      x.set(initialX);
-      y.set(initialY);
-    };
-    setInitialPosition();
+    // Position it in the bottom-right corner initially
+    x.set(window.innerWidth - 80);
+    y.set(window.innerHeight - 80);
   }, [x, y]);
   
   const scrollToBottom = () => {
@@ -68,23 +63,6 @@ export function ChatbotAssistant() {
       setIsLoading(false);
     }
   };
-  
-  const handleOpen = () => {
-    // Only open if a drag didn't happen
-    if (!dragDidMove.current) {
-        setIsOpen(true);
-    }
-    // Reset drag flag after a short delay to ensure clean taps
-    setTimeout(() => {
-        dragDidMove.current = false;
-    }, 50);
-  };
-  
-  const handleClose = () => {
-    setIsOpen(false);
-    // After closing, we can reset the drag flag immediately
-    dragDidMove.current = false;
-  };
 
   return (
     <>
@@ -100,7 +78,7 @@ export function ChatbotAssistant() {
             style={{ x, y }} // Use the shared motion values
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
+            exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.15 } }}
             transition={{ type: "spring", stiffness: 260, damping: 25 }}
           >
             <Card className="w-80 md:w-96 h-[500px] flex flex-col bg-card/80 backdrop-blur-xl border-white/10 shadow-2xl">
@@ -110,7 +88,7 @@ export function ChatbotAssistant() {
                 <CardTitle className="text-lg font-semibold flex items-center gap-2">
                   <Bot size={20} className="text-primary" /> AI Assistant
                 </CardTitle>
-                <Button variant="ghost" size="icon" className="h-8 w-8 cursor-pointer" onClick={handleClose}>
+                <Button variant="ghost" size="icon" className="h-8 w-8 cursor-pointer" onClick={() => setIsOpen(false)}>
                   <X className="h-4 w-4" />
                 </Button>
               </CardHeader>
@@ -181,10 +159,7 @@ export function ChatbotAssistant() {
             drag
             dragConstraints={constraintsRef}
             dragMomentum={false}
-            onDragStart={() => {
-                dragDidMove.current = true;
-            }}
-            onTap={handleOpen} // Use onTap for a combined press/release event
+            onTap={() => setIsOpen(true)}
             className="fixed z-50"
             style={{ x, y }} // Use the shared motion values
             initial={{ scale: 0, opacity: 0 }}
