@@ -19,21 +19,17 @@ export function ChatbotAssistant() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  
-  // Use a ref to store position, which prevents re-renders on update
-  const positionRef = useRef<{ x: number, y: number }>({ x: 0, y: 0 });
+  const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isInitialized, setIsInitialized] = useState(false);
-
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const constraintsRef = useRef<HTMLDivElement>(null);
 
-  // Set initial position only on the client-side after mount
   useEffect(() => {
-    positionRef.current = {
-      x: window.innerWidth - 100,
-      y: window.innerHeight - 100,
-    };
+    // Set initial position to bottom-right corner
+    const initialX = window.innerWidth - 100;
+    const initialY = window.innerHeight - 100;
+    setPosition({ x: initialX, y: initialY });
     setIsInitialized(true);
   }, []);
 
@@ -70,7 +66,6 @@ export function ChatbotAssistant() {
   const handleOpen = () => setIsOpen(true);
   const handleClose = () => setIsOpen(false);
 
-  // Do not render anything until the initial position is calculated on the client.
   if (!isInitialized) {
     return null;
   }
@@ -84,17 +79,16 @@ export function ChatbotAssistant() {
             drag
             dragConstraints={constraintsRef}
             dragMomentum={false}
-            dragListener={false} // We will use onPointerDown on the header
-            onDragEnd={(_event, info) => {
-              positionRef.current = { x: info.point.x, y: info.point.y };
-            }}
-            initial={{ opacity: 0, scale: 0.9, x: positionRef.current.x, y: positionRef.current.y }}
-            animate={{ opacity: 1, scale: 1, x: positionRef.current.x, y: positionRef.current.y }}
+            initial={{ opacity: 0, scale: 0.9, x: position.x, y: position.y }}
+            animate={{ opacity: 1, scale: 1, x: position.x, y: position.y }}
             exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.15 } }}
             transition={{ type: 'spring', stiffness: 260, damping: 25 }}
-            className="fixed z-50 pointer-events-auto"
+            className="fixed z-50 pointer-events-auto cursor-grab active:cursor-grabbing"
+            onDragEnd={(_event, info) => {
+              setPosition({ x: info.point.x, y: info.point.y });
+            }}
           >
-            <Card className="w-80 md:w-96 h-[500px] flex flex-col bg-card/80 backdrop-blur-xl border-white/10 shadow-2xl cursor-grab active:cursor-grabbing">
+            <Card className="w-80 md:w-96 h-[500px] flex flex-col bg-card/80 backdrop-blur-xl border-white/10 shadow-2xl">
               <CardHeader 
                 className="flex flex-row items-center justify-between p-3 border-b border-white/10"
               >
@@ -177,12 +171,12 @@ export function ChatbotAssistant() {
             drag
             dragConstraints={constraintsRef}
             dragMomentum={false}
-            onDragEnd={(_event, info) => {
-              positionRef.current = { x: info.point.x, y: info.point.y };
-            }}
             onTap={handleOpen}
-            initial={{ scale: 0, opacity: 0, x: positionRef.current.x, y: positionRef.current.y }}
-            animate={{ scale: 1, opacity: 1, x: positionRef.current.x, y: positionRef.current.y }}
+            onDragEnd={(_event, info) => {
+              setPosition({ x: info.point.x, y: info.point.y });
+            }}
+            initial={{ scale: 0, opacity: 0, x: position.x, y: position.y }}
+            animate={{ scale: 1, opacity: 1, x: position.x, y: position.y }}
             exit={{ scale: 0, opacity: 0, transition: { duration: 0.2 } }}
             transition={{ type: 'spring', stiffness: 260, damping: 20 }}
             className="fixed z-50 cursor-grab active:cursor-grabbing pointer-events-auto"
