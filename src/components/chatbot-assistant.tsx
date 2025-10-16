@@ -1,13 +1,13 @@
 
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Bot, Send, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { chat } from '@/ai/flows/chat-flow';
-import { AnimatePresence, motion, PanInfo } from 'framer-motion';
+import { AnimatePresence, motion, PanInfo, useDragControls } from 'framer-motion';
 
 type Message = {
   text: string;
@@ -22,7 +22,7 @@ export function ChatbotAssistant() {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isInitialized, setIsInitialized] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const constraintsRef = useRef<HTMLDivElement>(null);
 
@@ -66,18 +66,15 @@ export function ChatbotAssistant() {
     }
   };
   
-  const handleOpen = () => {
-      if (!isDragging) {
-        setIsOpen(true);
-      }
+  const handleTap = () => {
+    if (!isDragging) {
+      setIsOpen(true);
+    }
   };
+
   const handleClose = () => setIsOpen(false);
 
-  const handleIconDragStart = () => {
-    setIsDragging(true);
-  };
-  
-  const handleIconDragEnd = (
+  const handleDragEnd = (
     _event: MouseEvent | TouchEvent | PointerEvent,
     info: PanInfo
   ) => {
@@ -87,14 +84,6 @@ export function ChatbotAssistant() {
         setIsDragging(false);
     }, 0);
   };
-
-  const handleWindowDragEnd = (
-    _event: MouseEvent | TouchEvent | PointerEvent,
-    info: PanInfo
-  ) => {
-    setPosition({ x: info.point.x, y: info.point.y });
-  };
-
 
   if (!isInitialized) {
     return null;
@@ -114,7 +103,7 @@ export function ChatbotAssistant() {
             exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.15 } }}
             transition={{ type: 'spring', stiffness: 260, damping: 25 }}
             className="fixed z-50 pointer-events-auto cursor-grab active:cursor-grabbing"
-            onDragEnd={handleWindowDragEnd}
+            onDragEnd={handleDragEnd}
             style={{ x: position.x, y: position.y }}
           >
             <Card className="w-80 md:w-96 h-[500px] flex flex-col bg-card/80 backdrop-blur-xl border-white/10 shadow-2xl">
@@ -200,13 +189,27 @@ export function ChatbotAssistant() {
             drag
             dragConstraints={constraintsRef}
             dragMomentum={false}
-            onTap={handleOpen}
-            onDragStart={handleIconDragStart}
-            onDragEnd={handleIconDragEnd}
+            onDragStart={() => setIsDragging(true)}
+            onDragEnd={handleDragEnd}
+            onTap={handleTap}
             initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1, x: position.x, y: position.y }}
+            animate={{ 
+              scale: 1, 
+              opacity: 1, 
+              x: position.x, 
+              y: [position.y, position.y - 5, position.y]
+            }}
             exit={{ scale: 0, opacity: 0, transition: { duration: 0.2 } }}
-            transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+            transition={{
+              scale: { type: 'spring', stiffness: 260, damping: 20 },
+              opacity: { duration: 0.2 },
+              y: {
+                duration: 2,
+                repeat: Infinity,
+                repeatType: 'reverse',
+                ease: 'easeInOut',
+              },
+            }}
             className="fixed z-50 cursor-grab active:cursor-grabbing pointer-events-auto"
             style={{ x: position.x, y: position.y }}
           >
